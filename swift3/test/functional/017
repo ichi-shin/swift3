@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# List Multipart Uploads
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+_s3_put /bucket/object?uploadId=${upload_id}\&partNumber=1 -T /dev/null
+
+_s3_post /bucket/object?uploads | _filter_curl xml
+_s3_post /bucket/object?uploads | _filter_curl xml
+_s3_post /bucket/object?uploads | _filter_curl xml
+_s3_post /bucket/object?uploads | _filter_curl xml
+
+_s3_get /bucket?uploads\&encoding-type=url\&max-uploads=2 -D - | _filter_curl xml

@@ -1,0 +1,59 @@
+QA output created by 045
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/containerA... 200
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/containerA?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TESTER</ID>
+    <DisplayName>TESTER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TESTER</ID>
+        <DisplayName>TESTER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/containerA... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>containerA</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>
+> s3curl --id tester3 -- -X GET -D - http://SWIFT_HOST/containerA... 403
+HTTP/1.1 403 Forbidden
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied.</Message>
+  <RequestId>TXID</RequestId>
+</Error>

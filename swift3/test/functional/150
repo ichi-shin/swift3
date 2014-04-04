@@ -1,0 +1,25 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-6_1
+
+. ./common
+
+num=10
+
+S3USER=tester
+
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+for i in `seq $num`; do
+    _random | dd of=$tmp.data bs=4k seek=1024 count=1 > /dev/null 2>&1
+
+    _s3_put /bucket/object?uploadId=${upload_id}\&partNumber=$i -T $tmp.data
+done
+
+_s3_get /bucket/object?uploadId=${upload_id} | _filter_curl xml
+
+_sw_get /bucket+segments | sed -e "s/${upload_id}/UPLOAD_ID/g"

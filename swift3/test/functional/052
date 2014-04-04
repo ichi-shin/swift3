@@ -1,0 +1,9 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-6_2
+
+. ./common
+
+S3USER=tester
+
+_s3_delete /bucket | _filter_curl xml

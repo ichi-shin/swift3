@@ -1,0 +1,106 @@
+QA output created by 023
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /TMP.data -H x-amz-meta-meta: meta http://SWIFT_HOST/bucket/object... 200
+> s3curl --id tester -- -I -X HEAD -H range: bytes=0-10 http://SWIFT_HOST/bucket/object... 206
+HTTP/1.1 206 Partial Content
+Content-Length: LENGTH
+Content-Range: bytes 0-10/42
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-match: ETAG http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-match: XXXXX http://SWIFT_HOST/bucket/object... 412
+HTTP/1.1 412 Precondition Failed
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-none-match: ETAG http://SWIFT_HOST/bucket/object... 304
+HTTP/1.1 304 Not Modified
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-none-match: XXXX http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-unmodified-since: Thu, 1 Jan 1970 00:00:00 GMT http://SWIFT_HOST/bucket/object... 412
+HTTP/1.1 412 Precondition Failed
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-modified-since: Thu, 1 Jan 1970 00:00:00 GMT http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD -H if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT http://SWIFT_HOST/bucket/object... 304
+HTTP/1.1 304 Not Modified
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-meta: meta
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

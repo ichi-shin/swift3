@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# DB1-1-4-4_4
+
+. ./common
+
+S3USER=tester
+
+_s3_get /bucket -D - | _filter_curl xml

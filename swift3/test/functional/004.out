@@ -1,0 +1,48 @@
+QA output created by 004
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/abAB... 200
+> curl -X PUT -H x-container-read: TESTER -H x-container-write: TESTER http://SWIFT_HOST/v1/TENANT/a%2Bb... 201
+> curl -X PUT -H x-container-read: TESTER -H x-container-write: TESTER http://SWIFT_HOST/v1/TENANT/a%2Ab... 201
+> curl -X PUT -H x-container-read: TESTER -H x-container-write: TESTER http://SWIFT_HOST/v1/TENANT/a%2Fb... 404
+<?xml version='1.0' encoding='UTF-8'?>
+<html>
+  <h1>Not Found</h1>
+  <p>The resource could not be found.</p>
+</html>
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/abAB... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/plain; charset=utf-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+x-rgw-bytes-used: 0
+x-rgw-object-count: 0
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a%2Bb... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a%2Ab... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a%2Fb... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

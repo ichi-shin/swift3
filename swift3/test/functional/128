@@ -1,0 +1,31 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-12_2
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket/object1 -T /dev/null
+_s3_put /bucket/object2 -T /dev/null
+
+num=2
+
+_gen_delete_xml()
+{
+    echo '<Delete>'
+    echo '<Quiet>false</Quiet>'
+
+    for i in `seq $num`; do
+	echo "<Object><Key>object$i</Key></Object>"
+    done
+
+    echo '</Delete>'
+}
+
+_gen_delete_xml > $tmp.delete.xml
+cat $tmp.delete.xml
+
+MD5=AAA _s3_post /bucket?delete -T $tmp.delete.xml -D - | _filter_curl xml
+_s3_get /bucket | _filter_curl xml

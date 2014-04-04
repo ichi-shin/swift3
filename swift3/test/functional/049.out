@@ -1,0 +1,45 @@
+QA output created by 049
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a+b... 201
+> curl -I -X HEAD http://SWIFT_HOST/v1/TENANT/a+b... 204
+HTTP/1.1 204 No Content
+Accept-Ranges: bytes
+Content-Length: LENGTH
+Content-Type: text/plain; charset=utf-8
+Date: DATE
+X-Container-Bytes-Used: 0
+X-Container-Object-Count: 0
+X-Storage-Policy: Policy-0
+X-Timestamp: TIMESTAMP
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a+b... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a*b... 201
+> curl -I -X HEAD http://SWIFT_HOST/v1/TENANT/a+b... 204
+HTTP/1.1 204 No Content
+Accept-Ranges: bytes
+Content-Length: LENGTH
+Content-Type: text/plain; charset=utf-8
+Date: DATE
+X-Container-Bytes-Used: 0
+X-Container-Object-Count: 0
+X-Storage-Policy: Policy-0
+X-Timestamp: TIMESTAMP
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a*b... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

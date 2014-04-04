@@ -1,0 +1,3 @@
+swift>=1.12
+eventlet>=0.9.17
+lxml

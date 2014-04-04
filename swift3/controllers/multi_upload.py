@@ -1,0 +1,569 @@
+# Copyright (c) 2010-2014 OpenStack Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Implementation of S3 Multipart Upload.
+
+This module implements S3 Multipart Upload APIs with the Swift SLO feature.
+The following explains how swift3 uses swift container and objects to store S3
+upload information:
+
+ - [bucket]+segments
+
+   A container to store upload information.  [bucket] is the original bucket
+   where multipart upload is initiated.
+
+ - [bucket]+segments/[upload_id]
+
+   A object of the ongoing upload id.  The object is empty and used for
+   checking the target upload status.  If the object exists, it means that the
+   upload is initiated but not either completed or aborted.
+
+
+ - [bucket]+segments/[upload_id]/1
+   [bucket]+segments/[upload_id]/2
+   [bucket]+segments/[upload_id]/3
+     .
+     .
+
+   Uploaded part objects.  Those objects are directly used as segments of Swift
+   Static Large Object.
+"""
+
+from simplejson import dumps
+import os
+
+from swift.common.utils import split_path
+
+from swift3.controllers.base import Controller, bucket_owner_required, \
+    bucket_operation, object_operation
+from swift3.controllers.obj import ObjectController
+from swift3.response import InvalidArgument, ErrorResponse, \
+    MalformedXML, InvalidPart, BucketAlreadyExists, \
+    EntityTooSmall, InvalidPartOrder, InvalidRequest, HTTPOk, HTTPNoContent, \
+    S3NotImplemented, NoSuchKey, NoSuchUpload, AccessDenied
+from swift3.exception import BadSwiftRequest
+from swift3.utils import LOGGER, unique_id, json_to_objects
+from swift3.etree import Element, SubElement, fromstring, tostring, \
+    XMLSyntaxError, DocumentInvalid
+from swift3.subresource import ACL, ACLPrivate
+from swift3.cfg import CONF
+
+MAX_COMPLETE_UPLOAD_BODY_SIZE = 2048 * 1024
+
+
+# This also checks the permission to upload objects.
+def _check_and_get_upload_info(req, app, upload_id):
+    container = req.container_name + '+segments'
+    obj = '%s/%s' % (req.object_name, upload_id)
+
+    try:
+        resp = req.get_response(app, 'HEAD', container=container, obj=obj)
+    except NoSuchKey:
+        raise NoSuchUpload(upload_id=upload_id)
+
+    acl = resp.object_info['acl']
+    if acl.owner != req.user_id:
+        raise AccessDenied()
+
+    return acl, resp.headers
+
+
+class PartController(Controller):
+    """
+    Handles the following APIs:
+
+     - Upload Part
+     - Upload Part - Copy
+
+    Those APIs are logged as PART operations in the S3 server log.
+    """
+    @object_operation
+    def PUT(self, req):
+        """
+        Handles Upload Part and Upload Part Copy.
+        """
+        if 'uploadId' not in req.params:
+            raise InvalidArgument('ResourceType', 'partNumber',
+                                  'Unexpected query string parameter')
+
+        bucket_info = req.get_bucket_info(self.app)
+        bucket_info['acl'].check_permission(req.user_id, 'WRITE')
+
+        try:
+            partNumber = int(req.params['partNumber'])
+            if partNumber < 1 or CONF.max_max_parts < partNumber:
+                raise Exception()
+        except Exception:
+            err_msg = 'Part number must be an integer between 1 and ' \
+                '%d, inclusive' % CONF.max_max_parts
+            raise InvalidArgument('partNumber', req.params['partNumber'],
+                                  err_msg)
+
+        upload_id = req.params['uploadId']
+        _check_and_get_upload_info(req, self.app, upload_id)
+
+        container = req.container_name + '+segments'
+        obj = '%s/%s/%d' % (req.object_name, upload_id,
+                            int(req.params['partNumber']))
+
+        with req.target(container, obj):
+            controller = ObjectController(self.app)
+            resp = controller._put_object(req)
+
+        if req.copy_source is not None:
+            result_elem = Element('CopyPartResult')
+            SubElement(result_elem, 'LastModified').text = \
+                resp.last_modified.isoformat()[:-6] + '.000Z'
+            SubElement(result_elem, 'ETag').text = resp.etag
+            resp.body = tostring(result_elem, use_s3ns=False)
+
+        resp.status = 200
+        return resp
+
+
+class UploadsController(Controller):
+    """
+    Handles the following APIs:
+
+     - List Multipart Uploads
+     - Initiate Multipart Upload
+
+    Those APIs are logged as UPLOADS operations in the S3 server log.
+    """
+    @bucket_operation(err_resp=InvalidRequest,
+                      err_msg="Key is not expected for the GET method "
+                              "?uploads subresource")
+    @bucket_owner_required
+    def GET(self, req):
+        """
+        Handles List Multipart Uploads
+        """
+        encoding_type = req.params.get('encoding-type')
+        if encoding_type is not None and encoding_type != 'url':
+            err_msg = 'Invalid Encoding Method specified in Request'
+            raise InvalidArgument('encoding-type', encoding_type, err_msg)
+
+        keymarker = req.params.get('key-marker', '')
+        uploadid = req.params.get('upload-id-marker', '')
+        maxuploads = CONF.default_max_uploads
+        if 'max-uploads' in req.params:
+            try:
+                maxuploads = min(maxuploads, int(req.params['max-uploads']))
+                if maxuploads < 0:
+                    raise Exception()
+            except Exception:
+                err_msg = 'Provided max-uploads not an integer or within ' \
+                    'integer range'
+                raise InvalidArgument('max-uploads', req.params['max-uploads'],
+                                      err_msg)
+
+        query = {
+            'format': 'json',
+            # 'limit': maxuploads + 1,
+            'limit': 1000,  # FIXME
+        }
+        # FIXME: don't show uploads which are initiated before the bucket
+        # timestamp
+
+        if uploadid and keymarker:
+            query.update({'marker': '%s/%s' % (keymarker, uploadid)})
+        elif keymarker:
+            query.update({'marker': '%s/~' % (keymarker)})
+        if 'prefix' in req.params:
+            query.update({'prefix': req.params['prefix']})
+
+        if 'delimiter' in req.params:
+            msg = 'delimiter is not supported for list multipart uploads'
+            raise S3NotImplemented(msg)
+
+        container = req.container_name + '+segments'
+        resp = req.get_response(self.app, container=container, query=query)
+        objects = json_to_objects(resp.body)
+
+        def _filter(s):
+            if s is None:
+                return True
+            s = [c for c in s if c == '/']
+            return len(s) <= 1
+        objects = [o for o in objects if _filter(o.get('name'))]
+
+        if maxuploads > 0 and len(objects) > maxuploads:
+            objects = objects[:maxuploads]
+            truncated = True
+        else:
+            truncated = False
+
+        uploads = []
+        prefixes = []
+        for o in objects:
+            if 'subdir' in o:
+                obj, upid = split_path('/' + o['subdir'], 1, 2)
+                prefixes.append(obj)
+            else:
+                try:
+                    obj, upid = split_path('/' + o['name'], 1, 2)
+                except ValueError:
+                    # This is a part object, probably.
+                    continue
+                uploads.append(
+                    {'key': obj,
+                     'upload_id': upid,
+                     'last_modified': o['last_modified']}
+                )
+
+        nextkeymarker = ''
+        nextuploadmarker = ''
+        if len(uploads) > 1:
+            nextuploadmarker = uploads[-1]['upload_id']
+            nextkeymarker = uploads[-1]['key']
+
+        result_elem = Element('ListMultipartUploadsResult')
+        SubElement(result_elem, 'Bucket').text = req.container_name
+        SubElement(result_elem, 'KeyMarker').text = keymarker
+        SubElement(result_elem, 'UploadIdMarker').text = uploadid
+        SubElement(result_elem, 'NextKeyMarker').text = nextkeymarker
+        SubElement(result_elem, 'NextUploadIdMarker').text = nextuploadmarker
+        if 'prefix' in req.params:
+            SubElement(result_elem, 'Prefix').text = req.params['prefix']
+
+        SubElement(result_elem, 'MaxUploads').text = str(maxuploads)
+
+        if encoding_type is not None:
+            SubElement(result_elem, 'EncodingType').text = encoding_type
+
+        SubElement(result_elem, 'IsTruncated').text = \
+            'true' if truncated else 'false'
+
+        # TODO: don't show uploads which are initiated before this bucket is
+        # created.
+        for u in uploads:
+            upload_elem = SubElement(result_elem, 'Upload')
+            SubElement(upload_elem, 'Key').text = u['key']
+            SubElement(upload_elem, 'UploadId').text = u['upload_id']
+            initiator_elem = SubElement(upload_elem, 'Initiator')
+            SubElement(initiator_elem, 'ID').text = req.user_id
+            SubElement(initiator_elem, 'DisplayName').text = req.user_id
+            owner_elem = SubElement(upload_elem, 'Owner')
+            SubElement(owner_elem, 'ID').text = req.user_id
+            SubElement(owner_elem, 'DisplayName').text = req.user_id
+            SubElement(upload_elem, 'StorageClass').text = 'STANDARD'
+            SubElement(upload_elem, 'Initiated').text = \
+                u['last_modified'][:-3] + 'Z'
+
+        for p in prefixes:
+            elem = SubElement(result_elem, 'CommonPrefixes')
+            SubElement(elem, 'Prefix').text = p
+
+        body = tostring(result_elem, encoding_type=encoding_type)
+
+        return HTTPOk(body=body, content_type='application/xml')
+
+    @object_operation
+    def POST(self, req):
+        """
+        Handles Initiate Multipart Upload.
+        """
+        bucket_info = req.get_bucket_info(self.app)
+        bucket_info['acl'].check_permission(req.user_id, 'WRITE')
+
+        # Create a unique S3 upload id from UUID to avoid duplicates.
+        upload_id = unique_id()
+
+        container = req.container_name + '+segments'
+        try:
+            req.get_response(self.app, 'PUT', container, '')
+        except BucketAlreadyExists:
+            pass
+
+        acl = ACL.from_headers(req.headers, bucket_info['acl'].owner,
+                               req.user_id)
+        if acl is None:
+            acl = ACLPrivate(bucket_info['acl'].owner, req.user_id)
+
+        req.object_acl = acl
+
+        obj = '%s/%s' % (req.object_name, upload_id)
+
+        req.get_response(self.app, 'PUT', container, obj, body='')
+
+        result_elem = Element('InitiateMultipartUploadResult')
+        SubElement(result_elem, 'Bucket').text = req.container_name
+        SubElement(result_elem, 'Key').text = req.object_name
+        SubElement(result_elem, 'UploadId').text = upload_id
+
+        body = tostring(result_elem)
+
+        return HTTPOk(body=body, content_type='application/xml')
+
+
+class UploadController(Controller):
+    """
+    Handles the following APIs:
+
+     - List Parts
+     - Abort Multipart Upload
+     - Complete Multipart Upload
+
+    Those APIs are logged as UPLOAD operations in the S3 server log.
+    """
+    @object_operation
+    def GET(self, req):
+        """
+        Handles List Parts.
+        """
+        encoding_type = req.params.get('encoding-type')
+        if encoding_type is not None and encoding_type != 'url':
+            err_msg = 'Invalid Encoding Method specified in Request'
+            raise InvalidArgument('encoding-type', encoding_type, err_msg)
+
+        upload_id = req.params['uploadId']
+        _check_and_get_upload_info(req, self.app, upload_id)
+
+        maxparts = CONF.default_max_parts
+        part_num_marker = 0
+
+        if 'max-parts' in req.params:
+            try:
+                maxparts = int(req.params['max-parts'])
+                if maxparts < 1 or CONF.max_max_parts < maxparts:
+                    raise Exception()
+            except Exception:
+                err_msg = 'Part number must be an integer between 1 and ' \
+                    '%d, inclusive' % CONF.max_max_parts
+                raise InvalidArgument('partNumber', req.params['max-parts'],
+                                      err_msg)
+
+        if 'part-number-marker' in req.params:
+            try:
+                part_num_marker = int(req.params['part-number-marker'])
+            except Exception:
+                part_num_marker = 0
+
+        # fetch all upload parts.
+        query = {
+            'format': 'json',
+            'limit': maxparts + 1,
+            'prefix': '%s/%s/' % (req.object_name, upload_id),
+            'delimiter': '/'
+        }
+
+        container = req.container_name + '+segments'
+        resp = req.get_response(self.app, container=container, obj='',
+                                query=query)
+        objects = json_to_objects(resp.body)
+
+        last_part = 0
+
+        objList = []
+        #
+        # If the caller requested a list starting at a specific part number,
+        # construct a sub-set of the object list.
+        #
+        if part_num_marker > 0 and len(objects) > 0:
+            for o in objects:
+                try:
+                    num = int(os.path.basename(o['name']))
+                except Exception:
+                    num = 0
+                if num > part_num_marker:
+                    objList.append(o)
+        else:
+            objList = objects
+
+        objList.sort(key=lambda x: int(x['name'].split('/')[-1]))
+
+        if maxparts > 0 and len(objList) == (maxparts + 1):
+            truncated = True
+        else:
+            truncated = False
+
+        if len(objList) > 0:
+            o = objList[-1]
+            last_part = os.path.basename(o['name'])
+
+        result_elem = Element('ListPartsResult')
+        SubElement(result_elem, 'Bucket').text = req.container_name
+        SubElement(result_elem, 'Key').text = req.object_name
+        SubElement(result_elem, 'UploadId').text = upload_id
+
+        initiator_elem = SubElement(result_elem, 'Initiator')
+        SubElement(initiator_elem, 'ID').text = req.user_id
+        SubElement(initiator_elem, 'DisplayName').text = req.user_id
+        owner_elem = SubElement(result_elem, 'Owner')
+        SubElement(owner_elem, 'ID').text = req.user_id
+        SubElement(owner_elem, 'DisplayName').text = req.user_id
+
+        SubElement(result_elem, 'StorageClass').text = 'STANDARD'
+        SubElement(result_elem, 'PartNumberMarker').text = str(part_num_marker)
+        SubElement(result_elem, 'NextPartNumberMarker').text = str(last_part)
+        SubElement(result_elem, 'MaxParts').text = str(maxparts)
+        if 'encoding-type' in req.params:
+            SubElement(result_elem, 'EncodingType').text = \
+                req.params['encoding-type']
+        SubElement(result_elem, 'IsTruncated').text = \
+            'true' if truncated else 'false'
+
+        for i in objList[:maxparts]:
+            part_elem = SubElement(result_elem, 'Part')
+            SubElement(part_elem, 'PartNumber').text = i['name'].split('/')[-1]
+            SubElement(part_elem, 'LastModified').text = \
+                i['last_modified'][:-3] + 'Z'
+            SubElement(part_elem, 'ETag').text = i['hash']
+            SubElement(part_elem, 'Size').text = str(i['bytes'])
+
+        body = tostring(result_elem, encoding_type=encoding_type)
+
+        return HTTPOk(body=body, content_type='application/xml')
+
+    @object_operation
+    def DELETE(self, req):
+        """
+        Handles Abort Multipart Upload.
+        """
+        upload_id = req.params['uploadId']
+        _check_and_get_upload_info(req, self.app, upload_id)
+
+        # First check to see if this multi-part upload was already
+        # completed.  Look in the primary container, if the object exists,
+        # then it was completed and we return an error here.
+        container = req.container_name + '+segments'
+        obj = '%s/%s' % (req.object_name, upload_id)
+        req.get_response(self.app, container=container, obj=obj)
+
+        # The completed object was not found so this
+        # must be a multipart upload abort.
+        # We must delete any uploaded segments for this UploadID and then
+        # delete the object in the main container as well
+        query = {
+            'format': 'json',
+            'limit': CONF.max_max_parts,
+            'prefix': '%s/%s/' % (req.object_name, upload_id),
+            'delimiter': '/',
+        }
+
+        resp = req.get_response(self.app, 'GET', container, '', query=query)
+
+        #  Iterate over the segment objects and delete them individually
+        objects = json_to_objects(resp.body)
+        for o in objects:
+            container = req.container_name + '+segments'
+            req.get_response(self.app, container=container, obj=o['name'])
+
+        return HTTPNoContent()
+
+    @object_operation
+    def POST(self, req):
+        """
+        Handles Complete Multipart Upload.
+        """
+        bucket_info = req.get_bucket_info(self.app)
+        bucket_info['acl'].check_permission(req.user_id, 'WRITE')
+
+        upload_id = req.params['uploadId']
+        acl, headers = _check_and_get_upload_info(req, self.app, upload_id)
+
+        for key, val in headers.iteritems():
+            if key.startswith('x-amz-meta-'):
+                req.headers['x-object-meta-' + key[11:]] = val
+
+        # Query for the objects in the segments area to make sure it completed
+        query = {
+            'format': 'json',
+            'limit': CONF.max_max_parts,
+            'prefix': '%s/%s/' % (req.object_name, upload_id),
+            'delimiter': '/'
+        }
+
+        container = req.container_name + '+segments'
+        resp = req.get_response(self.app, 'GET', container, '', query=query)
+        objinfo = json_to_objects(resp.body)
+        objtable = dict((o['name'],
+                         {'path': '/'.join(['', container, o['name']]),
+                          'etag': o['hash'],
+                          'size_bytes': o['bytes']}) for o in objinfo)
+
+        # TODO: How AWS S3 handles the case when there are uploaded part
+        # objects which are not listed in the body xml?
+
+        manifest = []
+        previous_number = 0
+        try:
+            xml = req.xml(MAX_COMPLETE_UPLOAD_BODY_SIZE)
+            complete_elem = fromstring(xml, 'CompleteMultipartUpload')
+            for part_elem in complete_elem.iterchildren('Part'):
+                part_number = int(part_elem.find('./PartNumber').text)
+
+                if part_number <= previous_number:
+                    raise InvalidPartOrder(upload_id=upload_id)
+                previous_number = part_number
+
+                etag = part_elem.find('./ETag').text
+                if len(etag) >= 2 and etag[0] == '"' and etag[-1] == '"':
+                    # strip double quotes
+                    etag = etag[1:-1]
+
+                info = objtable.get("%s/%s/%s" % (req.object_name, upload_id,
+                                                  part_number))
+                if info is None or info['etag'] != etag:
+                    raise InvalidPart(upload_id=upload_id,
+                                      part_number=part_number)
+
+                manifest.append(info)
+        except (XMLSyntaxError, DocumentInvalid):
+            raise MalformedXML()
+        except ErrorResponse:
+            raise
+        except Exception as e:
+            LOGGER.error(e)
+            raise
+
+        req.object_acl = acl
+        self.add_version_id(req)
+
+        try:
+            resp = req.get_response(self.app, 'PUT', body=dumps(manifest),
+                                    query={'multipart-manifest': 'put'})
+        except BadSwiftRequest as e:
+            msg = str(e)
+            if msg.startswith('Each segment, except the last, '
+                              'must be at least '):
+                # FIXME: AWS S3 allows a smaller object than 5 MB if there is
+                # only one part.  Use a COPY request to copy the part object
+                # from the segments container instead.
+                raise EntityTooSmall(msg)
+            else:
+                raise
+
+        if bucket_info['versioning'] is None:
+            if 'x-amz-version-id' in resp.headers:
+                del resp.headers['x-amz-version-id']
+        else:
+            resp.headers['x-amz-version-id'] = req.version_id
+
+        obj = '%s/%s' % (req.object_name, upload_id)
+        req.get_response(self.app, 'DELETE', container, obj)
+
+        result_elem = Element('CompleteMultipartUploadResult')
+        SubElement(result_elem, 'Location').text = req.host_url + req.path
+        SubElement(result_elem, 'Bucket').text = req.container_name
+        SubElement(result_elem, 'Key').text = req.object_name
+        SubElement(result_elem, 'ETag').text = resp.etag
+
+        resp.body = tostring(result_elem)
+        resp.status = 200
+        resp.content_type = "application/xml"
+
+        return resp

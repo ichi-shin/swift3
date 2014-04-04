@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# DELETE Object
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket/object -T /dev/null -H 'x-amz-acl: public-read'
+
+_s3_delete /bucket/object -D - | _filter_curl

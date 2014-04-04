@@ -1,0 +1,35 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-4_6
+
+. ./common
+
+S3USER=tester
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.version.enabled.xml
+
+_s3_put /containerA
+_s3_put /containerA?versioning -T $tmp.version.enabled.xml
+
+echo data > $tmp.data
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /containerA/objectA -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H 'Expect: 100-continue' \
+    -H 'x-amz-storage-class: STANDARD' -D - | _filter_curl
+
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /containerA/objectB -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H 'Expect: 100-continue' \
+    -H 'x-amz-storage-class: STANDARD' -D - | _filter_curl
+
+_s3_delete /containerA/objectB
+
+_s3_get /containerA -D - | _filter_curl xml

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# DELETE Multiple Objects
+
+. ./common
+
+num=10
+
+S3USER=tester
+
+_gen_delete_xml()
+{
+    echo '<Delete>'
+    echo '<Quiet>false</Quiet>'
+
+    for i in `seq $num`; do
+	echo "<Object><Key>object$i</Key></Object>"
+    done
+
+    echo '</Delete>'
+}
+
+_gen_delete_xml > $tmp.delete.xml
+
+_s3_put /bucket
+
+for i in `seq $num`; do
+    _s3_put /bucket/object$i -T /dev/null
+done
+
+MD5=$(_md5 $tmp.delete.xml) _s3_post /bucket?delete -T $tmp.delete.xml -D - | _filter_curl xml
+
+_sw_get /bucket | _filter_curl

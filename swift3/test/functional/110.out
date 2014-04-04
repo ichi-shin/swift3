@@ -1,0 +1,32 @@
+QA output created by 110
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/containerA... 200
+> s3curl --id tester --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H Expect: 100-continue -H x-amz-storage-class: STANDARD -D - http://SWIFT_HOST/containerA/objectA... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X DELETE http://SWIFT_HOST/containerA/objectA... 204
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/containerA/objectA... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NoSuchKey</Code>
+  <Message>The specified key does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <Key>objectA</Key>
+</Error>

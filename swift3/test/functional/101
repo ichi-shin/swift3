@@ -1,0 +1,12 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-8_6
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket/obj -T /dev/null -H "x-amz-storage-class: REDUCED_REDUNDANCY" -D - | _filter_curl xml
+_s3_get /bucket/obj -D - | _filter_curl xml
+

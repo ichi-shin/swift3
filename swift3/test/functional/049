@@ -1,0 +1,16 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-5_1
+
+. ./common
+
+S3USER=tester
+
+_sw_put /a+b | _filter_curl
+_sw_head /a+b | _filter_curl
+_s3_head /a+b | _filter_curl
+
+_sw_put /a*b | _filter_curl
+_sw_head /a+b | _filter_curl
+_s3_head /a*b | _filter_curl
+

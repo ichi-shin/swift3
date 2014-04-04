@@ -1,4 +1,8 @@
 hacking
 sphinx
 nose
+openstack.nose_plugin
 coverage
+mock
+pylint
+python-openstackclient

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# GET Object ACL
+
+. ./common
+
+S3USER=tester
+
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<AccessControlPolicy xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">
+  <Owner>
+    <ID>${TENANT}:${TESTER_USER}</ID>
+    <DisplayName>${TENANT}:${TESTER_USER}</DisplayName>
+  </Owner>
+  <AccessControlList/>
+</AccessControlPolicy>" > $tmp.no_grant.xml
+
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<AccessControlPolicy xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">
+  <Owner>
+    <ID>${TENANT}:${TESTER_USER}</ID>
+    <DisplayName>${TENANT}:${TESTER_USER}</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">
+        <ID>${TENANT}:${TESTER_USER}</ID>
+        <DisplayName>${TENANT}:${TESTER_USER}</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">
+        <ID>${TENANT}:${TESTER2_USER}</ID>
+        <DisplayName>${TENANT}:${TESTER2_USER}</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>" > $tmp.full_control.xml
+
+_s3_put /bucket
+_s3_put /bucket/object -T /dev/null
+_s3_put /bucket/object?acl -T $tmp.no_grant.xml
+
+_s3_get /bucket/object?acl -D - | _filter_curl xml
+
+S3USER=tester2
+_s3_get /bucket/object?acl -D - | _filter_curl xml
+
+S3USER=tester
+_s3_put /bucket/object?acl -T $tmp.full_control.xml
+
+_s3_get /bucket/object?acl -D - | _filter_curl xml
+
+S3USER=tester2
+_s3_get /bucket/object?acl -D - | _filter_curl xml

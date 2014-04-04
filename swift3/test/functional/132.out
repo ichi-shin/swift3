@@ -1,0 +1,22 @@
+QA output created by 132
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST -H Cache-Control: no-cache http://SWIFT_HOST/bucket/obj_cache_control?uploads... 200
+> s3curl --id tester -- -X DELETE http://SWIFT_HOST/bucket/obj_cache_control?uploadId=UPLOAD_ID... 204
+> s3curl --id tester -- -X POST -H Expires: Wed, 15 Apr 2015 20:00:00 GMT http://SWIFT_HOST/bucket/obj_expires?uploads... 200
+> s3curl --id tester -- -X DELETE http://SWIFT_HOST/bucket/obj_expires?uploadId=UPLOAD_ID... 204
+> s3curl --id tester -- -X POST -H x-amz-server-side-encryption: AES256 http://SWIFT_HOST/bucket/obj_x-amz-server-side-encryption?uploads... 501
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NotImplemented</Code>
+  <Message>Server-side encryption is not supported.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X POST -H x-amz-website-redirect-location: http://example.com/ http://SWIFT_HOST/bucket/obj_x-amz-website-redirect-location?uploads... 501
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NotImplemented</Code>
+  <Message>Website redirection is not supported.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X POST -H x-amz-grant-write: id="handa:handa2" http://SWIFT_HOST/bucket/obj_x-amz-grant-write?uploads... 200
+> s3curl --id tester -- -X DELETE http://SWIFT_HOST/bucket/obj_x-amz-grant-write?uploadId=UPLOAD_ID... 204

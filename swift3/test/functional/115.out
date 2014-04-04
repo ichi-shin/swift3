@@ -1,0 +1,48 @@
+QA output created by 115
+> s3curl --id tester -- -X PUT -H x-amz-grant-full-control: id='TESTER2',id='TESTER3' http://SWIFT_HOST/bucket... 200
+> s3curl --id tester2 --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H x-amz-meta-hoge: hoge -H x-amz-grant-full-control: id=TESTER3 -D - http://SWIFT_HOST/bucket/objectA... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester3 -- -X PUT -H x-amz-acl: bucket-owner-read http://SWIFT_HOST/bucket/objectA?acl... 200
+> s3curl --id tester2 -- -X GET -D - http://SWIFT_HOST/bucket/objectA?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TESTER2</ID>
+    <DisplayName>TESTER2</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TESTER</ID>
+        <DisplayName>TESTER</DisplayName>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TESTER2</ID>
+        <DisplayName>TESTER2</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>

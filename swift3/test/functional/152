@@ -1,0 +1,24 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-6_4
+
+. ./common
+
+num=4
+
+S3USER=tester
+
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/%e3%81%82%2etxt?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+for i in `seq $num`; do
+    _random | dd of=$tmp.data bs=4k seek=1024 count=1 > /dev/null 2>&1
+
+    _s3_put /bucket/%e3%81%82%2etxt?uploadId=${upload_id}\&partNumber=$i -T $tmp.data
+done
+
+_s3_get /bucket/%e3%81%82%2etxt?uploadId=hoge -D - | _filter_curl xml
+

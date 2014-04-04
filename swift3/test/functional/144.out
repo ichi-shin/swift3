@@ -1,0 +1,38 @@
+QA output created by 144
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST -H x-amz-acl: public-read-write -H x-amz-meta-hoge1: 1 -H x-amz-meta-hoge2: 2 -H x-amz-meta-hoge3: 3 http://SWIFT_HOST/bucket/object?uploads... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=5... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=6... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=7... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=8... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=9... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=10... 200
+> s3curl --id tester -- -X POST -T /TMP.complete.xml -D - http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NoSuchUpload</Code>
+  <Message>The specified multipart upload does not exist. The upload ID might be invalid, or the multipart upload might have been aborted or completed.</Message>
+  <RequestId>TXID</RequestId>
+  <UploadId>UPLOAD_ID</UploadId>
+</Error>
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/bucket/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

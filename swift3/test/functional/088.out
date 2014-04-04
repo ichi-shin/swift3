@@ -1,0 +1,28 @@
+QA output created by 088
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /TMP.versioning.xml -H x-amz-mfa: 12345 -D - http://SWIFT_HOST/bucket?versioning... 501
+HTTP/1.1 501 Not Implemented
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NotImplemented</Code>
+  <Message>MFA Delete is not supported.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket?versioning... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"/>

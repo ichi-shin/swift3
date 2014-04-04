@@ -1,0 +1,4 @@
+QA output created by 008
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester --contentMd5 U2caJjlmWSTwONBlU/U/dA== -- -X PUT -T /TMP.lifecycle.xml http://SWIFT_HOST/bucket?lifecycle... 200
+> s3curl --id tester --contentMd5 eDUIEpKeDtC0qLR7RP6kkQ== -- -X PUT -T /TMP.lifecycle2.xml http://SWIFT_HOST/bucket?lifecycle... 200

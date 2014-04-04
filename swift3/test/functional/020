@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# GET Object
+
+. ./common
+
+S3USER=tester
+
+truncate $tmp.data -s 0
+for i in `seq 10`; do
+    echo $i >> $tmp.data
+done
+
+_s3_put /bucket
+_s3_put /bucket/object -T $tmp.data
+
+etag=$(_etag $tmp.data)
+
+_s3_get /bucket/object -D - -H "range: bytes=0-10" | _filter_curl
+
+_s3_get /bucket/object -D - -H "if-match: $etag" | _filter_curl
+
+_s3_get /bucket/object -D - -H "if-match: XXXXX" | _filter_curl
+
+_s3_get /bucket/object -D - -H "if-none-match: $etag" | _filter_curl
+
+_s3_get /bucket/object -D - -H "if-none-match: XXXX" | _filter_curl
+
+_s3_get /bucket/object -D - \
+    -H "if-unmodified-since: Thu, 1 Jan 1970 00:00:00 GMT" | _filter_curl
+
+_s3_get /bucket/object -D - \
+    -H "if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT" | _filter_curl
+
+_s3_get /bucket/object -D - \
+    -H "if-modified-since: Thu, 1 Jan 1970 00:00:00 GMT" | _filter_curl
+
+_s3_get /bucket/object -D - \
+    -H "if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT" | _filter_curl

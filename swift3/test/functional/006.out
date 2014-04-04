@@ -1,0 +1,59 @@
+QA output created by 006
+> s3curl --id tester -- -X PUT -H x-amz-acl: authenticated-read http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object... 200
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>
+> s3curl --id tester2 -- -X GET -D - http://SWIFT_HOST/bucket... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# List Parts
+
+. ./common
+
+num=8
+
+S3USER=tester
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+for i in `seq $num`; do
+    echo data$i > $tmp.data.$i
+    _s3_put /bucket/object?uploadId=${upload_id}\&partNumber=$i \
+	-T $tmp.data.$i
+done
+
+_s3_get /bucket/object?uploadId=${upload_id}\&max-parts=2 -D - | _filter_curl xml

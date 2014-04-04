@@ -1,0 +1,13 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-9_5
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket/source -T /dev/null
+_s3_put /bucket2/dest -D - -H 'x-amz-copy-source: /bucket/source' -D - | _filter_curl xml
+_s3_get /bucket2/dest -D - | _filter_curl xml
+

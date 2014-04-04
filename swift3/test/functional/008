@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# PUT Bucket lifecycle
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+echo '<LifecycleConfiguration>
+<Rule>
+   <ID>Archive and then delete rule</ID>
+   <Prefix>prefix_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration><Days>0</Days></Expiration>
+</Rule>
+</LifecycleConfiguration>' > $tmp.lifecycle.xml
+MD5=$(_md5 $tmp.lifecycle.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle.xml
+
+echo '<LifecycleConfiguration>
+<Rule>
+   <ID>Archive and then delete rule</ID>
+   <Prefix>prefix2_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration><Days>1</Days></Expiration>
+</Rule>
+</LifecycleConfiguration>' > $tmp.lifecycle2.xml
+MD5=$(_md5 $tmp.lifecycle2.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle2.xml

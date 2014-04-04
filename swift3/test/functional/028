@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Upload Part Copy
+
+. ./common
+
+S3USER=tester
+
+echo data > $tmp.data
+
+_s3_put /bucket
+_s3_put /bucket/source -T $tmp.data
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+_s3_put /bucket/object?uploadId=${upload_id}\&partNumber=1 -D - \
+    -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT" \
+    | _filter_curl xml
+
+_sw_get /bucket+segments | _filter_curl | sed -e "s/${upload_id}/UPLOAD_ID/g"

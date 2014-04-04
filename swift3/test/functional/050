@@ -1,0 +1,35 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-1-9
+
+. ./common
+
+S3USER=tester
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+_s3_put /bucket
+_s3_put /bucket?versioning -T $tmp.versioning.xml
+
+echo data > $tmp.data
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /bucket/object -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H 'Expect: 100-continue' \
+    -H 'x-amz-storage-class: STANDARD' -D - | _filter_curl
+
+xml=$(_s3_post /bucket/object?uploads)
+echo "$xml" | _filter_curl xml
+
+upload_id=$(echo "$xml" | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+_sw_get /bucket+versions | _filter_curl
+_sw_get /bucket+segments | _filter_curl | sed -e "s/${upload_id}/UPLOAD_ID/g"
+
+_s3_delete /bucket/object
+
+_s3_get /bucket -D - | _filter_curl xml

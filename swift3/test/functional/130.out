@@ -1,0 +1,84 @@
+QA output created by 130
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST -H x-amz-acl: public-read-write -H x-amz-meta-hoge1: 1 -H x-amz-meta-hoge2: 2 -H x-amz-meta-hoge3: 3 http://SWIFT_HOST/bucket/object?uploads... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=5... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=6... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=7... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=8... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=9... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=10... 200
+> s3curl --id tester -- -X POST -T /TMP.complete.xml -D - http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CompleteMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Location>http://SWIFT_HOST/bucket/object</Location>
+  <Bucket>bucket</Bucket>
+  <Key>object</Key>
+  <ETag>ETAG</ETag>
+</CompleteMultipartUploadResult>
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-meta-hoge1: 1
+x-amz-meta-hoge2: 2
+x-amz-meta-hoge3: 3
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket/object?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TESTER</ID>
+    <DisplayName>TESTER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+        <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+        <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+      </Grantee>
+      <Permission>WRITE</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TESTER</ID>
+        <DisplayName>TESTER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>

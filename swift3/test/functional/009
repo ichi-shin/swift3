@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# GET Bucket lifecycle
+
+. ./common
+
+S3USER=tester
+
+_gen_lifecycle_conf()
+{
+    local n=$1
+
+    echo '<LifecycleConfiguration>'
+
+    for i in `seq $n`; do
+	echo '<Rule>'
+	echo "<ID>rule_${i}</ID>"
+	echo "<Prefix>prefix${i}_</Prefix>"
+	echo "<Status>Enabled</Status>"
+	echo "<Expiration>"
+	if [ $(($i % 2)) == 0 ]; then
+	    echo "<Date>2014-12-31T00:00:00.000Z</Date>"
+	else
+	    echo "<Days>1</Days>"
+	fi
+	echo "</Expiration>"
+	echo '</Rule>'
+    done
+
+    echo '</LifecycleConfiguration>'
+}
+
+_s3_put /bucket
+
+for i in 1 2 100; do
+    _gen_lifecycle_conf $i > $tmp.lifecycle.$i.xml
+    MD5=$(_md5 $tmp.lifecycle.$i.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle.$i.xml
+    _s3_get /bucket?lifecycle | _filter_curl xml
+done

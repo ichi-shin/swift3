@@ -1,0 +1,56 @@
+QA output created by 029
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST -H x-amz-acl: public-read http://SWIFT_HOST/bucket/object?uploads... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.1 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.2 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.3 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.4 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.5 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=5... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.6 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=6... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.7 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=7... 200
+> s3curl --id tester -- -X PUT -T /TMP.data.8 http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=8... 200
+> s3curl --id tester -- -X POST -T /TMP.complete.xml -D - http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CompleteMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Location>http://SWIFT_HOST/bucket/object</Location>
+  <Bucket>bucket</Bucket>
+  <Key>object</Key>
+  <ETag>ETAG</ETag>
+</CompleteMultipartUploadResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket... 200
+object
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket/object?acl... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TESTER</ID>
+    <DisplayName>TESTER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+        <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TESTER</ID>
+        <DisplayName>TESTER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>

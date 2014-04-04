@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# HEAD Object
+
+. ./common
+
+S3USER=tester
+
+echo This is a test script for GET Object API. > $tmp.data
+_s3_put /bucket
+_s3_put /bucket/object -T $tmp.data -H 'x-amz-meta-meta: meta'
+
+etag=$(_etag $tmp.data)
+
+_s3_head /bucket/object -H "range: bytes=0-10" | _filter_curl
+
+_s3_head /bucket/object -H "if-match: $etag" | _filter_curl
+
+_s3_head /bucket/object -H "if-match: XXXXX" | _filter_curl
+
+_s3_head /bucket/object -H "if-none-match: $etag" | _filter_curl
+
+_s3_head /bucket/object -H "if-none-match: XXXX" | _filter_curl
+
+_s3_head /bucket/object \
+    -H "if-unmodified-since: Thu, 1 Jan 1970 00:00:00 GMT" | _filter_curl
+
+_s3_head /bucket/object \
+    -H "if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT" | _filter_curl
+
+_s3_head /bucket/object \
+    -H "if-modified-since: Thu, 1 Jan 1970 00:00:00 GMT" | _filter_curl
+
+_s3_head /bucket/object \
+    -H "if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT" | _filter_curl

@@ -1,0 +1,18 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-5-2_5
+
+. ./common
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+   <Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+
+S3USER=tester
+
+_sw_put /hoge*
+_sw_put /hoge*+versions
+_sw_put /hoge* -T $tmp.versioning.xml
+_sw_get /hoge*?versioning
+_s3_get /hoge*?versioning -D - | _filter_curl xml
+

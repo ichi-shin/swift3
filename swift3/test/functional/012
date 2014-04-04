@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# PUT Bucket logging
+
+. ./common
+
+echo '<?xml version="1.0" encoding="UTF-8"?>
+<BucketLoggingStatus xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <LoggingEnabled>
+    <TargetBucket>bucket2</TargetBucket>
+    <TargetPrefix>access_log-</TargetPrefix>
+  </LoggingEnabled>
+</BucketLoggingStatus>' > $tmp.logging.xml
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket2 -H 'x-amz-acl: log-delivery-write'
+
+_s3_put /bucket?logging -T $tmp.logging.xml -D - | _filter_curl

@@ -1,0 +1,24 @@
+QA output created by 153
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploads... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket/%e3%81%82%2etxt?uploadId=UPLOAD_ID&max-parts=0... 400
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>InvalidArgument</Code>
+  <Message>Part number must be an integer between 1 and 10000, inclusive</Message>
+  <RequestId>TXID</RequestId>
+  <ArgumentName>partNumber</ArgumentName>
+  <ArgumentValue>0</ArgumentValue>
+</Error>

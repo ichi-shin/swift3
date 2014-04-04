@@ -1,0 +1,12 @@
+QA output created by 021
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /dev/null -H x-amz-acl: public-read http://SWIFT_HOST/bucket/object... 200
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/object... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

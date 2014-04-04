@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Initiate Multipart Upload
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+_s3_post /bucket/object?uploads -D - | _filter_curl xml

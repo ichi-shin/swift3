@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Abort Multipart Upload
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+_s3_put /bucket/object?uploadId=${upload_id}\&partNumber=1 -T /dev/null
+
+_s3_delete /bucket/object?uploadId=${upload_id} -D - | _filter_curl
+
+_sw_get /bucket
+_sw_get /bucket+segments

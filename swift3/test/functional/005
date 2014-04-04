@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# DELETE Bucket
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket -H 'x-amz-acl: public-read'
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+_s3_put /bucket/object?uploadId=${upload_id}\&partNumber=1 -T /dev/null
+
+echo '<?xml version="1.0" encoding="UTF-8"?>
+<BucketLoggingStatus xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <LoggingEnabled>
+    <TargetBucket>bucket2</TargetBucket>
+    <TargetPrefix/>
+  </LoggingEnabled>
+</BucketLoggingStatus>' > $tmp.logging.xml
+_s3_put /bucket2 -H 'x-amz-acl: log-delivery-write'
+_s3_put /bucket?logging -T $tmp.logging.xml
+
+echo '<LifecycleConfiguration>
+<Rule>
+   <ID>Archive and then delete rule</ID>
+   <Prefix>prefix_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration><Days>0</Days></Expiration>
+</Rule>
+</LifecycleConfiguration>' > $tmp.lifecycle.xml
+MD5=$(_md5 $tmp.lifecycle.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle.xml
+_s3_delete /bucket?lifecycle
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+_s3_put /bucket?versioning -T $tmp.versioning.xml
+
+version_id[0]=$(_s3_put /bucket/object -T /dev/null \
+    -H 'x-amz-acl: public-read' -D - | _hq 'x-amz-version-id')
+version_id[1]=$(_s3_put /bucket/object -T $tmp.versioning.xml \
+    -H 'x-amz-acl: public-read-write' -D - | _hq 'x-amz-version-id')
+_s3_delete /bucket/object?versionId=${version_id[0]} -D - | _filter_curl
+_s3_delete /bucket/object?versionId=${version_id[1]} -D - | _filter_curl
+
+_s3_delete /bucket -D - | _filter_curl
+
+_sw_get /bucket | _filter_curl xml
+_sw_get /bucket+versions | _filter_curl
+_sw_get /bucket+segments | _filter_curl | sed -e "s/${upload_id}/UPLOAD_ID/g"

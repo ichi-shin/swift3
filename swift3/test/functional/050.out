@@ -1,0 +1,45 @@
+QA output created by 050
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /TMP.versioning.xml http://SWIFT_HOST/bucket?versioning... 200
+> s3curl --id tester --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H Expect: 100-continue -H x-amz-storage-class: STANDARD -D - http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+x-amz-version-id: VERSION_ID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X POST http://SWIFT_HOST/bucket/object?uploads... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<InitiateMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Bucket>bucket</Bucket>
+  <Key>object</Key>
+  <UploadId>UPLOAD_ID</UploadId>
+</InitiateMultipartUploadResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket+versions... 204
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket+segments... 200
+object/UPLOAD_ID
+> s3curl --id tester -- -X DELETE http://SWIFT_HOST/bucket/object... 204
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>

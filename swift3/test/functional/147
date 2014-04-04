@@ -1,0 +1,21 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-5_8
+
+. ./common
+
+S3USER=tester
+
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+
+_s3_delete /bucket/object?uploadId=${upload_id}
+
+_sw_get /bucket/object -D - | _filter_curl
+
+_sw_get /bucket+segments | grep object/${upload_id} | wc -l
+

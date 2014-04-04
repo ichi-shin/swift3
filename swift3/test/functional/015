@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# PUT Bucket versioning
+
+. ./common
+
+S3USER=tester
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.version.enabled.xml
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Suspended</Status>
+</VersioningConfiguration>' > $tmp.version.suspended.xml
+
+_s3_put /bucket
+_s3_put /bucket?versioning -T $tmp.version.enabled.xml
+
+_s3_put /bucket?versioning -T $tmp.version.suspended.xml -D - | _filter_curl

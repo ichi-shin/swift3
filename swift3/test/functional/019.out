@@ -1,0 +1,223 @@
+QA output created by 019
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/source... 200
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-match: ETAG http://SWIFT_HOST/bucket/dest... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CopyObjectResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyObjectResult>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-match: XXXXX http://SWIFT_HOST/bucket/dest... 412
+HTTP/1.1 412 Precondition Failed
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the preconditions you specified did not hold.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+<Code>NoSuchKey</Code>
+<Message>The specified key does not exist.</Message>
+<RequestId>TXID</RequestId>
+<Key>dest</Key>
+</Error>
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-none-match: ETAG http://SWIFT_HOST/bucket/dest... 412
+HTTP/1.1 412 Precondition Failed
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the preconditions you specified did not hold.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+<Code>NoSuchKey</Code>
+<Message>The specified key does not exist.</Message>
+<RequestId>TXID</RequestId>
+<Key>dest</Key>
+</Error>
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-none-match: XXXX http://SWIFT_HOST/bucket/dest... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CopyObjectResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyObjectResult>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-unmodified-since: Thu, 1 Jan 1970 00:00:00 GMT http://SWIFT_HOST/bucket/dest... 412
+HTTP/1.1 412 Precondition Failed
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the preconditions you specified did not hold.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+<Code>NoSuchKey</Code>
+<Message>The specified key does not exist.</Message>
+<RequestId>TXID</RequestId>
+<Key>dest</Key>
+</Error>
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT http://SWIFT_HOST/bucket/dest... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CopyObjectResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyObjectResult>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-modified-since: Thu, 1 Jan 1970 00:00:00 GMT http://SWIFT_HOST/bucket/dest... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CopyObjectResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyObjectResult>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT http://SWIFT_HOST/bucket/dest... 412
+HTTP/1.1 412 Precondition Failed
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the preconditions you specified did not hold.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+<Code>NoSuchKey</Code>
+<Message>The specified key does not exist.</Message>
+<RequestId>TXID</RequestId>
+<Key>dest</Key>
+</Error>

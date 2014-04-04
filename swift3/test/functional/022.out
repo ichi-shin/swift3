@@ -1,0 +1,57 @@
+QA output created by 022
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object1... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object2... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object3... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object4... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object5... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object6... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object7... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object8... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object9... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object10... 200
+> s3curl --id tester --contentMd5 hV8OySdDSDx2uwoLKd3maw== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Deleted>
+    <Key>object1</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object2</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object3</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object4</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object5</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object6</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object7</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object8</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object9</Key>
+  </Deleted>
+  <Deleted>
+    <Key>object10</Key>
+  </Deleted>
+</DeleteResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket... 204

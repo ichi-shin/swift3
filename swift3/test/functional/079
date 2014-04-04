@@ -1,0 +1,16 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-6-1_2
+
+. ./common
+
+echo '<BucketLoggingStatus xmlns="http://doc.s3.amazonaws.com/2006-03-01">
+</BucketLoggingStatus>' > $tmp.logging.xml
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket_log
+_s3_put /bucket_log?acl -H 'x-amz-grant-read-acp: uri="http://acs.amazonaws.com/groups/s3/LogDelivery"' -H 'x-amz-grant-write: uri="http://acs.amazonaws.com/groups/s3/LogDelivery"'
+_s3_put /bucket?logging -T $tmp.logging.xml
+_s3_get /bucket?logging -D - | _filter_curl xml

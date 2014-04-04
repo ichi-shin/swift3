@@ -1,0 +1,23 @@
+QA output created by 028
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /TMP.data http://SWIFT_HOST/bucket/source... 200
+> s3curl --id tester -- -X POST http://SWIFT_HOST/bucket/object?uploads... 200
+> s3curl --id tester -- -X PUT -D - -H x-amz-copy-source: /bucket/source -H x-amz-copy-source-if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=1... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<CopyPartResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyPartResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket+segments... 200
+object/UPLOAD_ID
+object/UPLOAD_ID/1

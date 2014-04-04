@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# GET Bucket logging
+
+. ./common
+
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<BucketLoggingStatus xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">
+  <LoggingEnabled>
+    <TargetBucket>bucket2</TargetBucket>
+    <TargetPrefix>access_log-</TargetPrefix>
+    <TargetGrants>
+       <Grant>
+         <Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"Group\">
+           <URI>http://acs.amazonaws.com/groups/global/AuthenticatedUsers</URI>
+         </Grantee>
+            <Permission>READ</Permission>
+       </Grant>
+       <Grant>
+         <Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">
+           <ID>${TENANT}:${TESTER2_USER}</ID>
+           <DisplayName>${TENANT}:${TESTER2_USER}</DisplayName>
+         </Grantee>
+         <Permission>READ</Permission>
+       </Grant>
+    </TargetGrants>
+  </LoggingEnabled>
+</BucketLoggingStatus>" > $tmp.logging.xml
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket2 -H 'x-amz-acl: log-delivery-write'
+
+_s3_put /bucket?logging -T $tmp.logging.xml | _filter_curl
+_s3_get /bucket?logging -D - | _filter_curl xml

@@ -1,0 +1,37 @@
+QA output created by 109
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a+b... 201
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a*b... 201
+> curl -X GET -D - http://SWIFT_HOST/v1/TENANT/... 200
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Content-Length: LENGTH
+Content-Type: text/plain; charset=utf-8
+Date: DATE
+X-Account-Bytes-Used: 0
+X-Account-Container-Count: 2
+X-Account-Object-Count: 0
+X-Account-Storage-Policy-Policy-0-Bytes-Used: 0
+X-Account-Storage-Policy-Policy-0-Object-Count: 0
+X-Timestamp: TIMESTAMP
+X-Trans-Id: TXID
+
+a*b
+a+b
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a+b... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id tester -- -I -X HEAD http://SWIFT_HOST/a*b... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

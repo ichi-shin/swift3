@@ -1,0 +1,15 @@
+QA output created by 030
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X POST http://SWIFT_HOST/bucket/object?uploads... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id tester -- -X DELETE -D - http://SWIFT_HOST/bucket/object?uploadId=UPLOAD_ID... 204
+HTTP/1.1 204 No Content
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket... 204
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket+segments... 204

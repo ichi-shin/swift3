@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Bucket logging
+
+. ./common
+
+# FIXME: this works only on my environment
+
+S3USER=tester
+
+_s3_put /bucket -H 'x-amz-acl: private'
+echo '<?xml version="1.0" encoding="UTF-8"?>
+<BucketLoggingStatus xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <LoggingEnabled>
+    <TargetBucket>bucket2</TargetBucket>
+    <TargetPrefix>log-</TargetPrefix>
+  </LoggingEnabled>
+</BucketLoggingStatus>' > $tmp.logging.xml
+_s3_put /bucket2 -H 'x-amz-acl: log-delivery-write'
+_s3_put /bucket?logging -T $tmp.logging.xml
+
+mkdir -p /tmp/swift/log2
+cp /tmp/swift/log/proxy.log /tmp/swift/log2
+sleep 3
+. ~/git/swifttest/.venv/bin/activate
+swift3-log-delivery ~/git/swift3/etc/swift3-log-delivery.conf -v -o
+deactivate
+
+for log in $(_sw_get /bucket2); do
+    _s3_get /bucket2/$log
+done

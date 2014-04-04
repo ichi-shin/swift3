@@ -1,0 +1,24 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-3_11
+
+. ./common
+
+
+S3USER=tester
+
+
+_s3_put /bucket
+
+_random | dd of=$tmp.data bs=4k seek=1024 count=1 > /dev/null 2>&1
+_s3_put /bucket/object -T $tmp.data
+
+
+upload_id=$(_s3_post /bucket/object2?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+_s3_put /bucket/object2?uploadId=${upload_id}\&partNumber=1 \
+    -H "x-amz-copy-source: /bucket/object" \
+    -H "x-amz-copy-source-if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT" | _filter_curl xml
+
+_sw_get /bucket+segments | _filter_curl | sed -e "s/${upload_id}/UPLOAD_ID/g"

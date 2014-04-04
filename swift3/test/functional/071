@@ -1,0 +1,10 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-3-3_4
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_delete /bucket?lifecycle

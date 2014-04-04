@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Virltual-Hosted-Style
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+_s3_put /bucket/object -T /dev/null
+_s3curl http://bucket.${SWIFT_HOST}/ -D - | _filter_curl xml

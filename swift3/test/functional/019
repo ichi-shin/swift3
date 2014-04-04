@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# PUT Object Copy
+
+. ./common
+
+S3USER=tester
+
+echo data > $tmp.data
+_s3_put /bucket
+_s3_put /bucket/source -T $tmp.data
+
+etag=$(_etag $tmp.data)
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-match: $etag" | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-match: XXXXX" | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-none-match: $etag" | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-none-match: XXXX" | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-unmodified-since: Thu, 1 Jan 1970 00:00:00 GMT" \
+    | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-unmodified-since: Wed, 1 Jan 3000 00:00:00 GMT" \
+    | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-modified-since: Thu, 1 Jan 1970 00:00:00 GMT" \
+    | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl
+
+_s3_put /bucket/dest -D - -H 'x-amz-copy-source: /bucket/source' \
+    -H "x-amz-copy-source-if-modified-since: Wed, 1 Jan 3000 00:00:00 GMT" \
+    | _filter_curl xml
+_s3_delete /bucket/dest -D - | _filter_curl

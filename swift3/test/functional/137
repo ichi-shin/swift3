@@ -1,0 +1,20 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-2_5
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H "Content-Encoding: gzip" \
+    -H "x-amz-meta-hoge: hoge" \
+    -H "x-amz-storage-class: STANDARD" | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+_random | dd of=$tmp.data bs=4k seek=1024 count=1 > /dev/null 2>&1
+_s3_put /bucket/object?uploadId=hoge\&partNumber=1 -T $tmp.data | _filter_curl xml
+

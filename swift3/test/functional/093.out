@@ -1,0 +1,18 @@
+QA output created by 093
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/hoge... 200
+> s3curl --id tester -- -X PUT -T /TMP.versioning.xml http://SWIFT_HOST/hoge?versioning... 200
+> s3curl --id tester2 -- -X GET -D - http://SWIFT_HOST/hoge?versioning... 403
+HTTP/1.1 403 Forbidden
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied.</Message>
+  <RequestId>TXID</RequestId>
+</Error>

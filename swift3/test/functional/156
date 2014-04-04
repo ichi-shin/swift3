@@ -1,0 +1,18 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-7_3
+
+. ./common
+
+
+S3USER=tester
+
+_s3_put /156
+
+upload_id=$(_s3_post /156/%e3%81%82%2etxt?uploads _xq /InitiateMultipartUploadResult/UploadId)
+upload_id=$(_s3_post /156/%e3%81%84%2etxt?uploads _xq /InitiateMultipartUploadResult/UploadId)
+upload_id=$(_s3_post /156/object?uploads _xq /InitiateMultipartUploadResult/UploadId)
+
+
+_s3_get /156?uploads\&encoding-type=url\&max-uploads=hoge -D - | _filter_curl xml
+

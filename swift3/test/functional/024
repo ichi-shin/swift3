@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# PUT Object ACL
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket -H 'x-amz-acl: public-read-write'
+_s3_put /bucket/object -T /dev/null -H 'x-amz-acl: private'
+_s3_put /bucket/object -T /dev/null -H 'x-amz-acl: public-read'
+
+S3USER=tester2
+_s3_get /bucket/object -D - | _filter_curl

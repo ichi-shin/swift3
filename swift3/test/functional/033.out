@@ -1,0 +1,13 @@
+QA output created by 033
+> s3curl --id tester -- -X PUT -H x-amz-acl: private http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -H x-amz-acl: log-delivery-write http://SWIFT_HOST/bucket2... 200
+> s3curl --id tester -- -X PUT -T /TMP.logging.xml http://SWIFT_HOST/bucket?logging... 200
+swift3-log-delivery: Adding required filter dlo to pipeline at position 1
+swift3-log-delivery: Adding required filter gatekeeper to pipeline at position 1
+swift3-log-delivery: Pipeline was modified. New pipeline is "catch_errors gatekeeper dlo cache proxy-server".
+swift3-log-delivery: Uploading logs
+swift3-log-delivery: /tmp/swift/log2/proxy.log
+swift3-log-delivery: Processing log: /tmp/swift/log2/proxy.log
+swift3-log-delivery: Uploading logs complete (0.00 minutes)
+swift3-log-delivery: Exited
+> curl -X GET http://SWIFT_HOST/v1/TENANT/bucket2... 204

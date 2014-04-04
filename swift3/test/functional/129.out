@@ -1,0 +1,264 @@
+QA output created by 129
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object1... 200
+> s3curl --id tester -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object2... 200
+<DELETE>
+<Quiet>false</Quiet>
+<Object><Key>obj</Key><VersionId></VersionId></Object>
+</DELETE>
+> s3curl --id tester --contentMd5 oFw9GAlgnVyhXSly+CI0fA== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>The XML you provided was not well-formed or did not validate against our published schema.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Contents>
+    <Key>object2</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>
+<Delete>
+<QUIET>false</QUIET>
+<Object><Key>obj</Key><VersionId></VersionId></Object>
+</Delete>
+> s3curl --id tester --contentMd5 xNQT+d8JgpwAT4bvEQEKjQ== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>The XML you provided was not well-formed or did not validate against our published schema.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Contents>
+    <Key>object2</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>
+<Delete>
+<Quiet>false</Quiet>
+<OBJECT><Key>obj</Key><VersionId></VersionId></OBJECT>
+</Delete>
+> s3curl --id tester --contentMd5 UQByYLxnCngbsLP9yD44VQ== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>The XML you provided was not well-formed or did not validate against our published schema.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Contents>
+    <Key>object2</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>
+<Delete>
+<Quiet>false</Quiet>
+<KEY>obj</KEY><VersionId></VersionId>
+</Delete>
+> s3curl --id tester --contentMd5 j3pCrWncG68GiK5kwGMLqQ== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>The XML you provided was not well-formed or did not validate against our published schema.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Contents>
+    <Key>object2</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>
+<Delete>
+<Quiet>false</Quiet>
+<Key>obj</Key><VERSIONID></VERSIONID>
+</Delete>
+> s3curl --id tester --contentMd5 NpAKlDx8X7mh+tJHePncGQ== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>The XML you provided was not well-formed or did not validate against our published schema.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version='1.0' encoding='UTF-8'?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+  <Contents>
+    <Key>object2</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>

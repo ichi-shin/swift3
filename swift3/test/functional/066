@@ -1,0 +1,46 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-3-2_5
+
+. ./common
+
+echo '<LifecycleConfiguration>
+<Rule>
+   <ID>Archive and then delete rule1</ID>
+   <Prefix>prefix0_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration>
+      <Date>2012-12-31T00:00:00.000Z</Date>
+   </Expiration>
+</Rule>
+<Rule>
+   <ID>Archive and then delete rule2</ID>
+   <Prefix>prefix1_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration>
+      <Days>3</Days>
+   </Expiration>
+</Rule>
+</LifecycleConfiguration>
+' > $tmp.lifecycle.date.days.xml
+
+echo '<LifecycleConfiguration>
+  <Rule>
+    <ID>Rule-1</ID>
+    <Prefix>a</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>10</Days>
+    </Expiration>
+  </Rule>
+</LifecycleConfiguration>' > $tmp.lifecycle.nodate.xml
+
+S3USER=tester
+
+_s3_put /bucket
+MD5=$(_md5 $tmp.lifecycle.date.days.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle.date.days.xml
+_s3_get /bucket?lifecycle -D - | _filter_curl xml
+
+MD5=$(_md5 $tmp.lifecycle.nodate.xml) _s3_put /bucket?lifecycle -T $tmp.lifecycle.nodate.xml
+_s3_get /bucket?lifecycle -D - | _filter_curl xml
+

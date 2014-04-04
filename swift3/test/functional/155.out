@@ -1,0 +1,53 @@
+QA output created by 155
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/155... 200
+> s3curl --id tester -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/155/%e3%81%82%2etxt?uploads... 200
+> s3curl --id tester -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/155/%e3%81%84%2etxt?uploads... 200
+> s3curl --id tester -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/155/object?uploads... 200
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/155?uploads&encoding-type=url&max-uploads=2... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<ListMultipartUploadsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Bucket>155</Bucket>
+  <KeyMarker/>
+  <UploadIdMarker/>
+  <NextKeyMarker>%E3%81%82.txt</NextKeyMarker>
+  <NextUploadIdMarker>UPLOAD_ID</NextUploadIdMarker>
+  <MaxUploads>2</MaxUploads>
+  <EncodingType>url</EncodingType>
+  <IsTruncated>true</IsTruncated>
+  <Upload>
+    <Key>object</Key>
+    <UploadId>UPLOAD_ID</UploadId>
+    <Initiator>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Initiator>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+    <Initiated>DATE</Initiated>
+  </Upload>
+  <Upload>
+    <Key>%E3%81%82.txt</Key>
+    <UploadId>UPLOAD_ID</UploadId>
+    <Initiator>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Initiator>
+    <Owner>
+      <ID>TESTER</ID>
+      <DisplayName>TESTER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+    <Initiated>DATE</Initiated>
+  </Upload>
+</ListMultipartUploadsResult>

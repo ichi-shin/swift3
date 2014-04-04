@@ -1,0 +1,13 @@
+QA output created by 075
+> s3curl --id tester -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket?location... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<LocationConstraint xmlns="http://s3.amazonaws.com/doc/2006-03-01/"/>

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# HEAD Bucket
+
+. ./common
+
+S3USER=tester
+
+_s3_put /abAB
+_sw_put /a%2Bb \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+_sw_put /a%2Ab \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+_sw_put /a%2Fb \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}" \
+    | _filter_curl xml
+
+_s3_head /abAB | _filter_curl
+_s3_head /a%2Bb | _filter_curl
+_s3_head /a%2Ab | _filter_curl
+_s3_head /a%2Fb | _filter_curl

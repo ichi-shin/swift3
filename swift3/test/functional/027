@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Upload Part
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+_s3_put /bucket/object?uploadId=${upload_id}\&partNumber=10000 -T /dev/null -D - | \
+    _filter_curl
+
+_sw_get /bucket+segments | _filter_curl | sed -e "s/${upload_id}/UPLOAD_ID/g"

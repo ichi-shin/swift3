@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Complete Multipart Upload
+
+. ./common
+
+num=8
+
+S3USER=tester
+
+_gen_complete_xml()
+{
+    echo '<CompleteMultipartUpload>'
+
+    for i in `seq $num`; do
+	echo '<Part>'
+	echo "<PartNumber>$i</PartNumber>"
+	echo "<ETag>$(_etag $tmp.data.$i)</ETag>"
+	echo '</Part>'
+    done
+
+    echo '</CompleteMultipartUpload>'
+}
+
+_s3_put /bucket
+
+upload_id=$(_s3_post /bucket/object?uploads -H 'x-amz-acl: public-read' | \
+    _xpath '/InitiateMultipartUploadResult/UploadId/text()')
+
+for i in `seq $num`; do
+    echo data$i > $tmp.data.$i
+    _s3_put /bucket/object?uploadId=${upload_id}\&partNumber=$i \
+	-T $tmp.data.$i
+done
+
+_gen_complete_xml > $tmp.complete.xml
+
+_s3_post /bucket/object?uploadId=${upload_id} -T $tmp.complete.xml -D - | \
+    _filter_curl xml
+
+_sw_get /bucket
+_s3_get /bucket/object?acl | _filter_curl xml

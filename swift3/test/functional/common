@@ -1,0 +1,17 @@
+set -e
+seq=`basename $0`
+echo "QA output created by $seq"
+
+# get standard environment, filters and checks
+. ./common.rc
+. ./common.filter
+
+here=`pwd`
+tmp=${TEST_DIR}/tmp.$$
+status=1        # failure is the default!
+
+. ./swift.rc
+. ./s3.rc
+
+_sw_setup
+_s3_setup

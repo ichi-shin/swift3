@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# GET Service
+
+. ./common
+
+S3USER=tester
+
+_s3_put /abcdefghijklmnopqrstuvwxyz_01234
+_s3_put /5ABCDEFGHIJKLMNOPQRSTUVWXYZ.5-6789
+_sw_put /a%2Bb \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+_sw_put /a%3Db \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+_sw_put /a%2Cb \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+
+S3USER=tester2
+
+_s3_put /abc_123
+_sw_put /abc_123%2Bsegments \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+_sw_put /abc_123%2Bversioning \
+    -H "x-container-read: ${TENANT}:${TESTER_USER}" \
+    -H "x-container-write: ${TENANT}:${TESTER_USER}"
+
+S3USER=tester
+
+_s3_get / -D - | _filter_curl xml

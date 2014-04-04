@@ -1,0 +1,34 @@
+QA output created by 181
+> s3curl --id tester -- -X PUT -T /TMP.xml -D - http://SWIFT_HOST/bucket... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>InvalidLocationConstraint</Code>
+  <Message>The specified location constraint is not valid.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id tester -- -X GET -D - http://SWIFT_HOST/bucket... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>bucket</BucketName>
+</Error>

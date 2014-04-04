@@ -1,0 +1,13 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-13_8
+
+. ./common
+
+S3USER=tester
+
+_s3_put /bucket -D - | _filter_curl
+_s3_get /bucket -D - | _filter_curl xml
+_s3_get /bucket?versioning | _filter_curl xml
+_s3_get /bucket?lifecycle | _filter_curl xml
+_s3_head /bucket/object | _filter_curl
