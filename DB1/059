@@ -1,0 +1,15 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-2-6_1
+
+. ./common
+
+S3USER=test1
+
+_s3_put /bucket -H "x-amz-acl: private"
+_s3_get /bucket?acl -D - | _filter_curl xml
+_s3_delete /bucket
+_s3_get /bucket -D - | _filter_curl xml
+
+_s3_put /bucket -H "x-amz-grant-full-control: id='${TEST2_TENANT}:${TEST2_USER}',uri='http://acs.amazonaws.com/groups/global/AuthenticatedUsers',uri='http://acs.amazonaws.com/groups/global/AllUsers',uri='http://acs.amazonaws.com/groups/s3/LogDelivery'"
+_s3_get /bucket?acl -D - | _filter_curl xml

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-2_1
+
+. ./common
+S3USER=test2
+_s3_put /bucket
+_s3_post /bucket/obj?uploads -D - | _filter_curl xml
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+_s3_put /bucket?versioning -T $tmp.versioning.xml
+
+_sw_get /
+
+S3USER=test1
+_s3_get / -D - | _filter_curl xml

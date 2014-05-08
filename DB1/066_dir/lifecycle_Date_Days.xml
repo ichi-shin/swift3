@@ -1,0 +1,19 @@
+<LifecycleConfiguration>
+<Rule>
+   <ID>Archive and then delete rule1</ID>
+   <Prefix>prefix0_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration>
+      <Date>2012-12-31T00:00:00.000Z</Date>
+   </Expiration>
+</Rule>
+<Rule>
+   <ID>Archive and then delete rule2</ID>
+   <Prefix>prefix1_</Prefix>
+   <Status>Enabled</Status>
+   <Expiration>
+      <Days>3</Days>
+   </Expiration>
+</Rule>
+</LifecycleConfiguration>
+

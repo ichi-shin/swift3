@@ -1,0 +1,24 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-6_5
+
+. ./common
+
+num=4
+
+S3USER=test1
+
+
+_s3_put /153
+
+upload_id=$(_s3_post /153/%e3%81%82%2etxt?uploads | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+for i in `seq $num`; do
+    j=$(($i - 1))
+    _s3_put /153/%e3%81%82%2etxt?uploadId=${upload_id}\&partNumber=$i \
+        -T ./data/segment_1M.dat_0$j
+done
+
+_s3_get /153/%e3%81%82%2etxt?uploadId=${upload_id}\&max-parts=0 -D - | _filter_curl xml
+

@@ -1,0 +1,67 @@
+QA output created by 111
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/containerA... 200
+> s3curl --id test1 -- -X GET http://SWIFT_HOST/containerA?versioning... 200
+<?xml version="1.0" encoding="UTF-8"?>
+<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"/>
+> s3curl --id test1 -- -X GET http://SWIFT_HOST/containerA?lifecycle... 404
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchLifecycleConfiguration</Code>
+  <Message>The lifecycle configuration does not exist. .</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H Expect: 100-continue -H x-amz-grant-read: id=TEST1_USER -D - http://SWIFT_HOST/containerA/objectA... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/containerA/objectA?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER</ID>
+        <DisplayName>TEST1_USER</DisplayName>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>
+> s3curl --id test1 -- -X DELETE http://SWIFT_HOST/containerA/objectA... 204
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/containerA/objectA... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchKey</Code>
+  <Message>The specified key does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <Key>objectA</Key>
+</Error>

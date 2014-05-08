@@ -1,0 +1,39 @@
+QA output created by 149
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/149... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/149/object?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_00 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_01 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_02 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_03 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_04 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=5... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_05 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=6... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_06 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=7... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_07 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=8... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_08 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=9... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_09 http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID&partNumber=10... 200
+> curl -X GET http://SWIFT_HOST/v1/TENANT/149+segments... 200
+10
+> s3curl --id test2 -- -X DELETE -D - http://SWIFT_HOST/149/object?uploadId=UPLOAD_ID... 403
+HTTP/1.1 403 Forbidden
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> curl -X GET -D - http://SWIFT_HOST/v1/TENANT/149/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+X-Trans-Id: TXID
+
+<html><h1>Not Found</h1><p>The resource could not be found.</p></html>> curl -X GET http://SWIFT_HOST/v1/TENANT/149+segments... 200
+10

@@ -1,0 +1,50 @@
+QA output created by 151
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/151... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/151/%e3%81%82%2etxt?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_00 http://SWIFT_HOST/151/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_01 http://SWIFT_HOST/151/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_02 http://SWIFT_HOST/151/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_03 http://SWIFT_HOST/151/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/151/%e3%81%82%2etxt?uploadId=UPLOAD_ID&encoding-type=url&max-parts=4&part-number-marker=2... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListPartsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Bucket>151</Bucket>
+  <Key>%E3%81%82.txt</Key>
+  <UploadId>UPLOAD_ID</UploadId>
+  <Initiator>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Initiator>
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <StorageClass>STANDARD</StorageClass>
+  <PartNumberMarker>2</PartNumberMarker>
+  <NextPartNumberMarker>4</NextPartNumberMarker>
+  <MaxParts>4</MaxParts>
+  <EncodingType>url</EncodingType>
+  <IsTruncated>false</IsTruncated>
+  <Part>
+    <PartNumber>3</PartNumber>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>102400</Size>
+  </Part>
+  <Part>
+    <PartNumber>4</PartNumber>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>102400</Size>
+  </Part>
+</ListPartsResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/151+segments... 200
+4

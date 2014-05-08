@@ -1,4 +1,5 @@
-# Copyright 2012 OpenStack, LLC.
+# Copyright (c) 2012-2014 OpenStack Foundation.
+# Copyright(c)2014 NTT corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,10 +16,17 @@
 """
 Static Web Middleware for OpenStack Swift
 """
+import pbr.version
 
 __all__ = ['version_info', 'version']
 
-#: Version information ``(major, minor, revision)``.
-version_info = (1, 7, 0)
+# get version info using pbr.version.
+# pbr version info is inferred from version in setup.cfg
+# and vcs information.
+_version_info = pbr.version.VersionInfo('swift3')
+
 #: Version string ``'major.minor.revision'``.
-version = '.'.join(map(str, version_info))
+version = _version_info.version_string()
+
+#: Version information ``(major, minor, revision)``.
+version_info = version.split('.')

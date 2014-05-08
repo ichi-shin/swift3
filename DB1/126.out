@@ -1,0 +1,30 @@
+QA output created by 126
+<Delete>
+<Quiet>true</Quiet>
+<Object><Key>object1</Key></Object>
+<Object><Key>object2</Key></Object>
+</Delete>
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/object1... 200
+> s3curl --id test1 --contentMd5 rdRrBtPP0mqTOC8hb2U7ag== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"/>
+> s3curl --id test1 -- -X GET http://SWIFT_HOST/bucket/... 200
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>

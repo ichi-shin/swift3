@@ -1,0 +1,24 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-10_12
+
+. ./common
+
+num=4
+
+S3USER=test1
+
+_s3_put /bucket
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> 
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+_s3_put /bucket?versioning -T $tmp.versioning.xml
+
+for i in `seq $num`; do
+    echo $i > $tmp.data.$i
+    version_id[$i]=$(_s3_put /bucket/object -T $tmp.data.$i -D - | \
+	_hq 'x-amz-version-id')
+done
+
+_s3_get /bucket/object -D - | _filter_curl

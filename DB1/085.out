@@ -1,0 +1,17 @@
+QA output created by 085
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/aaa?logging... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>aaa</BucketName>
+</Error>

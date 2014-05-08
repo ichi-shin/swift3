@@ -1,0 +1,33 @@
+QA output created by 101
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T /dev/null -H x-amz-storage-class: REDUCED_REDUNDANCY -D - http://SWIFT_HOST/bucket/obj... 400
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>InvalidStorageClass</Code>
+  <Message>The storage class you specified is not valid.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket/obj... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchKey</Code>
+  <Message>The specified key does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <Key>obj</Key>
+</Error>

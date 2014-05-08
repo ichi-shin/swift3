@@ -1,0 +1,73 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-4_4
+
+. ./common
+
+num=1
+
+S3USER=test1
+
+_gen_complete_xml_no_PartNumber()
+{
+    echo '<CompleteMultipartUpload>'
+
+    for i in `seq $num`; do
+        j=$(($i - 1))
+        echo '<Part>'
+        echo "<ETag>$(_etag ./data/segment_50M.dat_0$j)</ETag>"
+        echo '</Part>'
+    done
+
+    echo '</CompleteMultipartUpload>'
+}
+
+_gen_complete_xml_no_Etag()
+{
+    echo '<CompleteMultipartUpload>'
+
+    for i in `seq $num`; do
+        j=$(($i - 1))
+        echo '<Part>'
+        echo "<PartNumber>$i</PartNumber>"
+        echo '</Part>'
+    done
+
+    echo '</CompleteMultipartUpload>'
+}
+
+
+
+_s3_put /145
+
+upload_id=$(_s3_post /145/object?uploads \
+    -H "x-amz-acl: public-read-write" \
+    -H "x-amz-meta-hoge1: 1" \
+    -H "x-amz-meta-hoge2: 2" \
+    -H "x-amz-meta-hoge3: 3" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+for i in `seq $num`; do
+    j=$(($i - 1))
+    _s3_put /145/object?uploadId=${upload_id}\&partNumber=$i \
+        -T ./data/segment_50M.dat_0$j
+done
+
+_gen_complete_xml_no_PartNumber > 145.complete.xml
+
+_s3_post /145/object?uploadId=${upload_id} -T 145.complete.xml -D - | \
+    _filter_curl xml
+
+_s3_head /145/object | _filter_curl
+
+rm 145.complete.xml
+
+
+_gen_complete_xml_no_Etag > 145.complete.xml
+
+_s3_post /145/object?uploadId=${upload_id} -T 145.complete.xml -D - | \
+    _filter_curl xml
+
+_s3_head /145/object | _filter_curl
+
+rm 145.complete.xml

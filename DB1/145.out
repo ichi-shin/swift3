@@ -1,0 +1,56 @@
+QA output created by 145
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/145... 200
+> s3curl --id test1 -- -X POST -H x-amz-acl: public-read-write -H x-amz-meta-hoge1: 1 -H x-amz-meta-hoge2: 2 -H x-amz-meta-hoge3: 3 http://SWIFT_HOST/145/object?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_00 http://SWIFT_HOST/145/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id test1 -- -X POST -T 145.complete.xml -D - http://SWIFT_HOST/145/object?uploadId=UPLOAD_ID... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>This happens when the user sends a malformed xml (xml that doesn't conform to the published xsd) for the configuration. The error message is, "The XML you provided was not well-formed or did not validate against our published schema." .</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 -- -I -X HEAD http://SWIFT_HOST/145/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id test1 -- -X POST -T 145.complete.xml -D - http://SWIFT_HOST/145/object?uploadId=UPLOAD_ID... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>MalformedXML</Code>
+  <Message>This happens when the user sends a malformed xml (xml that doesn't conform to the published xsd) for the configuration. The error message is, "The XML you provided was not well-formed or did not validate against our published schema." .</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 -- -I -X HEAD http://SWIFT_HOST/145/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

@@ -1,0 +1,7 @@
+*.out.bad
+*.notrun
+*.full
+check.log
+check.time
+
+.s3curl

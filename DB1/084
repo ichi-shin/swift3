@@ -1,0 +1,14 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-6-2_5
+
+. ./common
+
+S3USER=test1
+
+_sw_put /a+b
+_s3_get /a+b?logging -D - | _filter_curl xml
+
+_sw_put /a*b
+_s3_get /a*b?logging -D - | _filter_curl xml
+

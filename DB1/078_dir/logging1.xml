@@ -1,0 +1,21 @@
+<BucketLoggingStatus xmlns="http://doc.s3.amazonaws.com/2006-03-01">
+  <LoggingEnabled>
+    <TargetBucket>bucket_log</TargetBucket>
+    <TargetPrefix>logs_</TargetPrefix>
+    <TargetGrants>
+      <Grant>
+        <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+          <URI>http://acs.amazonaws.com/groups/global/AuthenticatedUsers</URI>
+        </Grantee>
+        <Permission>READ</Permission>
+      </Grant>
+      <Grant>
+        <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+          <ID>demo:demo</ID>
+          <DisplayName>demo:demo</DisplayName>
+        </Grantee>
+        <Permission>READ</Permission>
+      </Grant>
+    </TargetGrants>
+  </LoggingEnabled>
+</BucketLoggingStatus>

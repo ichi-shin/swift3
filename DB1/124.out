@@ -1,0 +1,35 @@
+QA output created by 124
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T /dev/null http://SWIFT_HOST/bucket/source... 200
+> s3curl --id test1 -- -X PUT -D - -H x-amz-copy-source: /bucket/source -D - http://SWIFT_HOST/bucket2/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>bucket2</BucketName>
+</Error>
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket2/dest... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchKey</Code>
+  <Message>The specified key does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <Key>dest</Key>
+</Error>

@@ -1,0 +1,11 @@
+QA output created by 137
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/137... 200
+> s3curl --id test1 -- -X POST -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H x-amz-meta-hoge: hoge -H x-amz-storage-class: STANDARD http://SWIFT_HOST/137/object?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_01 http://SWIFT_HOST/137/object?uploadId=UPLOAD_ID&partNumber=1... 404
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchUpload</Code>
+  <Message>The specified multipart upload does not exist. The upload ID might be invalid, or the multipart upload might have been aborted or completed.</Message>
+  <RequestId>TXID</RequestId>
+  <UploadId>UPLOAD_ID</UploadId>
+</Error>

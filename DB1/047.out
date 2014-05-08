@@ -1,0 +1,73 @@
+QA output created by 047
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/abcdefghijklmnopqrstuvwxyz_01234... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/abcdefghijklmnopqrstuvwxyz_01234... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>abcdefghijklmnopqrstuvwxyz_01234</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/5ABCDEFGHIJKLMNOPQRSTUVWXYZ.5-6789... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/5ABCDEFGHIJKLMNOPQRSTUVWXYZ.5-6789... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>5ABCDEFGHIJKLMNOPQRSTUVWXYZ.5-6789</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/123... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/123... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>123</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/aaaa.a... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/aaaa.a... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>aaaa.a</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+</ListBucketResult>

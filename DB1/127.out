@@ -1,0 +1,44 @@
+QA output created by 127
+<Delete>
+<Quiet>false</Quiet>
+<Object><Key></Key></Object>
+</Delete>
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T /dev/null -H x-amz-acl: public-read http://SWIFT_HOST/bucket/object1... 200
+> s3curl --id test1 --contentMd5 C/qkqk+Kr1f8b3fYbI+j4A== -- -X POST -T /TMP.delete.xml -D - http://SWIFT_HOST/bucket?delete... 400
+HTTP/1.1 100 Continue
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>UserKeyMustBeSpecified</Code>
+  <Message>The bucket POST must contain the specified field name. If it is specified, please check the order of the fields.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 -- -X GET http://SWIFT_HOST/bucket... 200
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>bucket</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>object1</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>0</Size>
+    <Owner>
+      <ID>TEST1_USER</ID>
+      <DisplayName>TEST1_USER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>

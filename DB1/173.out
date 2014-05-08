@@ -1,0 +1,39 @@
+QA output created by 173
+> s3curl --id test2 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test2 -- -X POST -D - http://SWIFT_HOST/bucket/obj?uploads... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<InitiateMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Bucket>bucket</Bucket>
+  <Key>obj</Key>
+  <UploadId>UPLOAD_ID</UploadId>
+</InitiateMultipartUploadResult>
+> s3curl --id test2 -- -X PUT -T /TMP.versioning.xml http://SWIFT_HOST/bucket?versioning... 200
+> curl -X GET http://SWIFT_HOST/v1/TENANT/... 200
+bucket
+bucket+segments
+bucket+versions
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <Buckets/>
+</ListAllMyBucketsResult>

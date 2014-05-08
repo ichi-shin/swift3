@@ -1,0 +1,33 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-5_5
+
+. ./common
+
+num=10
+
+S3USER=test1
+
+
+_s3_put /149
+
+upload_id=$(_s3_post /149/object?uploads | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+for i in `seq $num`; do
+    j=$(($i - 1))
+    _s3_put /149/object?uploadId=${upload_id}\&partNumber=$i \
+        -T ./data/segment_1M.dat_0$j
+done
+
+_sw_get /149+segments | grep object/${upload_id} | wc -l
+
+
+S3USER=test2
+
+_s3_delete /149/object?uploadId=${upload_id} -D - | _filter_curl xml
+
+_sw_get /149/object -D - | _filter_curl
+
+_sw_get /149+segments | grep object/${upload_id} | wc -l
+

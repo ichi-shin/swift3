@@ -1,0 +1,22 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-4-10_13
+
+. ./common
+S3USER=test1
+
+echo '<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+<Status>Enabled</Status>
+</VersioningConfiguration>' > $tmp.versioning.xml
+
+_s3_put /bucket
+_s3_put /bucket?versioning -T $tmp.versioning.xml
+_s3_get /bucket?versioning -D - | _filter_curl xml
+
+echo 'AAA' > $tmp.obj
+_s3_put /bucket/obj -T $tmp.obj
+echo 'BBB' > $tmp.obj
+version_id=$(_s3_put /bucket/obj -T $tmp.obj -D - | _hq 'x-amz-version-id')
+echo 'CCC' > $tmp.obj
+_s3_put /bucket/obj -T $tmp.obj
+_s3_get /bucket/obj?versionId=${version_id} -D - | _filter_curl

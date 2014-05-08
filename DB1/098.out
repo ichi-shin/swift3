@@ -1,0 +1,57 @@
+QA output created by 098
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H x-amz-meta-hoge: hoge -H x-amz-acl: private -D - http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket/object?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER</ID>
+        <DisplayName>TEST1_USER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>
+> curl -X GET -D - http://SWIFT_HOST/v1/TENANT/bucket/object?acl... 200
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Content-Disposition: attachment; filename="a.txt.gz"
+Content-Encoding: gzip
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: ETAG
+Last-Modified: DATE
+X-Object-Meta-Hoge: hoge
+X-Object-Meta-[Swift3]-Owner: TEST1_USER
+X-Object-Meta-[Swift3]-Timestamp: TIMESTAMP
+X-Timestamp: TIMESTAMP
+X-Trans-Id: TXID
+
+data

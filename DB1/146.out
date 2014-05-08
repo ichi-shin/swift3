@@ -1,0 +1,25 @@
+QA output created by 146
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/146... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/146/object?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_00 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_01 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_02 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_03 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_04 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=5... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_05 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=6... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_06 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=7... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_07 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=8... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_08 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=9... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_09 http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID&partNumber=10... 200
+> curl -X GET http://SWIFT_HOST/v1/TENANT/146+segments... 200
+10
+> s3curl --id test1 -- -X DELETE http://SWIFT_HOST/146/object?uploadId=UPLOAD_ID... 204
+> curl -X GET -D - http://SWIFT_HOST/v1/TENANT/146/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+X-Trans-Id: TXID
+
+<html><h1>Not Found</h1><p>The resource could not be found.</p></html>> curl -X GET http://SWIFT_HOST/v1/TENANT/146+segments... 204
+0

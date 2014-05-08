@@ -1,0 +1,35 @@
+QA output created by 076
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a+b... 201
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/a+b?location... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>a+b</BucketName>
+</Error>
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/a*b... 201
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/a*b?location... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>a*b</BucketName>
+</Error>

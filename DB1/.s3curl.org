@@ -1,0 +1,26 @@
+
+%awsSecretAccessKeys = (
+    test1 => {
+        id => 'd4978ceca5fb4a37b0c9aac3987dab59',
+        key => 'f060633872e843eaab7bc2defe0f93b1',
+	endpoints => '10.100.46.52',
+    },
+
+    test2 => {
+        id => 'd4978ceca5fb4a37b0c9aac3987dab59',
+        key => 'f060633872e843eaab7bc2defe0f93b1',
+	endpoints => '10.100.46.52',
+    },
+
+    test3 => {
+        id => '5c2e491a28254779ab28c3ac1b69b0f2',
+        key => 'f800c2a9de6f4777bf4f2e85c4805e1c',
+	endpoints => '10.100.46.52',
+    },
+
+    admin => {
+        id => 'admin:admin',
+        key => 'admin',
+	endpoints => '10.100.46.52',
+    },
+);

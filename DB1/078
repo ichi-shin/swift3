@@ -1,0 +1,40 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-6-1_1
+
+. ./common
+
+S3USER=test1
+
+_gen_logging_xml()
+{
+    echo '<BucketLoggingStatus xmlns="http://doc.s3.amazonaws.com/2006-03-01">'
+	echo '<LoggingEnabled>'
+		echo '<TargetBucket>bucket_log</TargetBucket>'
+		echo '<TargetPrefix>logs_</TargetPrefix>'
+		echo '<TargetGrants>'
+			echo '<Grant>'
+				echo '<Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">'
+					echo '<URI>http://acs.amazonaws.com/groups/global/AuthenticatedUsers</URI>'
+				echo '</Grantee>'
+				echo '<Permission>READ</Permission>'
+			echo '</Grant>'
+			echo '<Grant>'
+				echo '<Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">'
+					echo '<ID>TEST1_USER</ID>'
+					echo '<DisplayName>TEST1_USER</DisplayName>'
+				echo '</Grantee>'
+				echo '<Permission>READ</Permission>'
+			echo '</Grant>'
+		echo '</TargetGrants>'
+    	echo '</LoggingEnabled>'
+    echo '</BucketLoggingStatus>'
+}
+
+_gen_logging_xml > $tmp.logging.xml
+
+_s3_put /bucket
+_s3_put /bucket_log
+_s3_put /bucket_log?acl -H 'x-amz-grant-read-acp: uri="http://acs.amazonaws.com/groups/s3/LogDelivery"' -H 'x-amz-grant-write: uri="http://acs.amazonaws.com/groups/s3/LogDelivery"'
+_s3_put /bucket?logging -T $tmp.logging.xml
+_s3_get /bucket?logging -D - | _filter_curl xml

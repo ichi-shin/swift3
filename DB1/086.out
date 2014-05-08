@@ -1,0 +1,16 @@
+QA output created by 086
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T ./086_dir/testVersioning-Enabled http://SWIFT_HOST/bucket?versioning... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket?versioning... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<VersioningConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Status>Enabled</Status>
+</VersioningConfiguration>

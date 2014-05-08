@@ -1,0 +1,49 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-1_4
+
+. ./common
+
+S3USER=test1
+
+_s3_put /132
+
+upload_id=$(_s3_post /132/obj_cache_control?uploads \
+    -H "Cache-Control: no-cache" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+_s3_delete /132/obj_cache_control?uploadId=${upload_id}
+
+
+
+upload_id=$(_s3_post /132/obj_expires?uploads \
+    -H "Expires: Wed, 15 Apr 2015 20:00:00 GMT" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+_s3_delete /132/obj_expires?uploadId=${upload_id}
+
+
+
+upload_id=$(_s3_post /132/obj_x-amz-server-side-encryption?uploads \
+    -H "x-amz-server-side-encryption: AES256" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+#_s3_delete /132/obj_x-amz-server-side-encryption?uploadId=${upload_id}
+
+
+
+upload_id=$(_s3_post /132/obj_x-amz-website-redirect-location?uploads \
+    -H "x-amz-website-redirect-location: http://www.google.com/" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+#_s3_delete /132/obj_x-amz-website-redirect-location?uploadId=${upload_id}
+
+
+
+upload_id=$(_s3_post /132/obj_x-amz-grant-write?uploads \
+    -H 'x-amz-grant-write: id="handa:handa2"' | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+_s3_delete /132/obj_x-amz-grant-write?uploadId=${upload_id}
+
+

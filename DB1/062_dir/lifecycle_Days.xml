@@ -1,0 +1,10 @@
+<LifecycleConfiguration>
+  <Rule>
+    <ID>Rule-1</ID>
+    <Prefix>a</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>10</Days>
+    </Expiration>
+  </Rule>
+</LifecycleConfiguration>

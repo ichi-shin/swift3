@@ -1,0 +1,13 @@
+QA output created by 136
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/136... 200
+> s3curl --id test1 -- -X POST -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H x-amz-meta-hoge: hoge -H x-amz-storage-class: STANDARD http://SWIFT_HOST/136/object?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_01 http://SWIFT_HOST/136/object?uploadId=UPLOAD_ID&partNumber=0... 400
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>InvalidArgument</Code>
+  <Message>Part number must be an integer between 1 and 10000, inclusive</Message>
+  <RequestId>TXID</RequestId>
+  <ArgumentName>partNumber</ArgumentName>
+  <ArgumentValue>0</ArgumentValue>
+</Error>
+./136: line 22: _s2_get: command not found

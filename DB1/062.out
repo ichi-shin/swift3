@@ -1,0 +1,23 @@
+QA output created by 062
+> s3curl --id test1 --contentMd5 B3TydZQCrG9WflISDhI5SQ== -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 --contentMd5 B3TydZQCrG9WflISDhI5SQ== -- -X PUT -T ./062_dir/lifecycle_Days.xml http://SWIFT_HOST/bucket?lifecycle... 200
+> s3curl --id test1 --contentMd5 B3TydZQCrG9WflISDhI5SQ== -- -X GET -D - http://SWIFT_HOST/bucket?lifecycle... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Rule>
+    <ID>Rule-1</ID>
+    <Prefix>a</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>10</Days>
+    </Expiration>
+  </Rule>
+</LifecycleConfiguration>

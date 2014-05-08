@@ -1,0 +1,34 @@
+QA output created by 039
+> s3curl --id test1 -- -X PUT -H x-amz-grant-read: id='TEST1_USER' -H x-amz-grant-read: id='TEST1_USER2' http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER</ID>
+        <DisplayName>TEST1_USER</DisplayName>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER2</ID>
+        <DisplayName>TEST1_USER2</DisplayName>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>

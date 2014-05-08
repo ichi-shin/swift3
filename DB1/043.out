@@ -1,0 +1,60 @@
+QA output created by 043
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/containerA... 200
+> s3curl --id test1 -- -X PUT -T /TMP.version.enabled.xml http://SWIFT_HOST/containerA?versioning... 200
+> s3curl --id test1 --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H Expect: 100-continue -H x-amz-storage-class: STANDARD -D - http://SWIFT_HOST/containerA/objectA... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+x-amz-version-id: VERSION_ID
+X-Trans-Id: TXID
+
+> s3curl --id test1 --contentMd5 YTfN5Ik8WfdvAFqBI9jo5g== --contentType application/octet-stream -- -X PUT -T /TMP.data -H Content-Disposition: attachment; filename="a.txt.gz" -H Content-Encoding: gzip -H Content-Length: 5 -H Expect: 100-continue -H x-amz-storage-class: STANDARD -D - http://SWIFT_HOST/containerA/objectB... 200
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+ETag: "ETAG"
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+x-amz-version-id: VERSION_ID
+X-Trans-Id: TXID
+
+> s3curl --id test1 -- -X DELETE http://SWIFT_HOST/containerA/objectB... 204
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/containerA... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Name>containerA</Name>
+  <Prefix/>
+  <Marker/>
+  <MaxKeys>1000</MaxKeys>
+  <IsTruncated>false</IsTruncated>
+  <Contents>
+    <Key>objectA</Key>
+    <LastModified>DATE</LastModified>
+    <ETag>ETAG</ETag>
+    <Size>5</Size>
+    <Owner>
+      <ID>TEST1_USER</ID>
+      <DisplayName>TEST1_USER</DisplayName>
+    </Owner>
+    <StorageClass>STANDARD</StorageClass>
+  </Contents>
+</ListBucketResult>

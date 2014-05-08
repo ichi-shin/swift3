@@ -1,0 +1,71 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-7-1_2
+
+. ./common
+
+num=10
+
+S3USER=test1
+
+_gen_complete_xml()
+{
+    echo '<CompleteMultipartUpload>'
+
+    for i in `seq $num`; do
+        j=$(($i - 1))
+        echo '<Part>'
+        echo "<PartNumber>$i</PartNumber>"
+        echo "<ETag>$(_etag ./data/segment_50M.dat_0$j)</ETag>"
+        echo '</Part>'
+    done
+
+    echo '</CompleteMultipartUpload>'
+}
+
+
+_s3_put /131
+
+upload_id=$(_s3_post /131/object?uploads | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+for i in `seq $num`; do
+    j=$(($i - 1))
+    _s3_put /131/object?uploadId=${upload_id}\&partNumber=$i \
+        -T ./data/segment_50M.dat_0$j
+done
+
+_gen_complete_xml > 131.complete.xml
+
+_s3_post /131/object?uploadId=${upload_id} -T 131.complete.xml -D - | \
+    _filter_curl xml
+
+rm 131.complete.xml
+
+
+
+upload_id=$(_s3_post /131/object?uploads \
+    -H "x-amz-acl: public-read-write" \
+    -H "x-amz-meta-hoge1: 1" \
+    -H "x-amz-meta-hoge2: 2" \
+    -H "x-amz-meta-hoge3: 3" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+for i in `seq $num`; do
+    j=$(($i - 1))
+    _s3_put /131/object?uploadId=${upload_id}\&partNumber=$i \
+        -T ./data/segment_50M.dat_0$j
+done
+
+_gen_complete_xml > 131.complete.xml
+
+_s3_post /131/object?uploadId=${upload_id} -T 131.complete.xml -D - | \
+    _filter_curl xml
+
+
+_s3_head /131/object | _filter_curl
+
+_s3_get /131/object?acl -D - | _filter_curl xml
+
+rm 131.complete.xml
+

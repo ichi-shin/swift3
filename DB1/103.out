@@ -1,0 +1,20 @@
+QA output created by 103
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT -T /TMP.versioning.xml http://SWIFT_HOST/bucket?versioning... 200
+> s3curl --id test1 -- -X PUT -T /TMP.data.1 -D - http://SWIFT_HOST/bucket/object... 200
+> s3curl --id test1 -- -X PUT -T /TMP.data.2 -D - http://SWIFT_HOST/bucket/object... 200
+> s3curl --id test1 -- -X PUT -T /TMP.data.3 -D - http://SWIFT_HOST/bucket/object... 200
+> s3curl --id test1 -- -X PUT -T /TMP.data.4 -D - http://SWIFT_HOST/bucket/object... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket/object... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/octet-stream
+Date: DATE
+ETag: ETAG
+Last-Modified: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+x-amz-version-id: VERSION_ID
+X-Trans-Id: TXID
+
+4

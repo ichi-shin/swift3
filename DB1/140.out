@@ -1,0 +1,13 @@
+QA output created by 140
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/140... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_01 http://SWIFT_HOST/140/objectA... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_02 http://SWIFT_HOST/140/objectB... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/140/object2?uploads... 200
+> s3curl --id test1 -- -X PUT -H x-amz-copy-source: /140/objectA -H x-amz-copy-source-if-match: ETAG http://SWIFT_HOST/140/object2?uploadId=UPLOAD_ID&partNumber=1... 412
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the preconditions you specified did not hold.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/140+segments... 204

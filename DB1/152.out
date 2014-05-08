@@ -1,0 +1,23 @@
+QA output created by 152
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/152... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/152/%e3%81%82%2etxt?uploads... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_00 http://SWIFT_HOST/152/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=1... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_01 http://SWIFT_HOST/152/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=2... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_02 http://SWIFT_HOST/152/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=3... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_1M.dat_03 http://SWIFT_HOST/152/%e3%81%82%2etxt?uploadId=UPLOAD_ID&partNumber=4... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/152/%e3%81%82%2etxt?uploadId=UPLOAD_ID... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchUpload</Code>
+  <Message>The specified multipart upload does not exist. The upload ID might be invalid, or the multipart upload might have been aborted or completed.</Message>
+  <RequestId>TXID</RequestId>
+  <UploadId>UPLOAD_ID</UploadId>
+</Error>

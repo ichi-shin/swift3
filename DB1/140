@@ -1,0 +1,29 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-3_9
+
+. ./common
+
+
+S3USER=test1
+
+etag=$(_etag ./data/segment_50M.dat_02)
+
+
+_s3_put /140
+
+_s3_put /140/objectA -T ./data/segment_50M.dat_01
+
+_s3_put /140/objectB -T ./data/segment_50M.dat_02
+
+
+upload_id=$(_s3_post /140/object2?uploads | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+_s3_put /140/object2?uploadId=${upload_id}\&partNumber=1 \
+    -H "x-amz-copy-source: /140/objectA" \
+    -H "x-amz-copy-source-if-match: $etag" | _filter_curl xml
+
+
+_sw_get /140+segments | _filter_curl
+

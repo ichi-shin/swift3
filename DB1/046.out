@@ -1,0 +1,13 @@
+QA output created by 046
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -I -X HEAD http://SWIFT_HOST/bucket... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/plain; charset=utf-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Rgw-Bytes-Used: 0
+X-Rgw-Object-Count: 0
+X-Trans-Id: TXID
+

@@ -1,0 +1,28 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-2-1_7
+
+. ./common
+
+S3USER=test1
+
+_s3_put /bucket -H "x-amz-grant-full-control: id='${TEST2_TENANT}:${TEST2_USER}',id='${TEST3_TENANT}:${TEST3_USER}'"
+
+S3USER=test2
+
+echo data > $tmp.data
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /bucket/objectA -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H "x-amz-meta-hoge: hoge" \
+    -H 'x-amz-grant-full-control: id='${TEST3_TENANT}:${TEST3_USER}'' -D - | _filter_curl
+
+S3USER=test3
+
+_s3_put /bucket/objectA?acl -H "x-amz-acl: bucket-owner-read"
+
+S3USER=test2
+
+_s3_get /bucket/objectA?acl -D - | _filter_curl xml

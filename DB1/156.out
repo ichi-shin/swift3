@@ -1,0 +1,22 @@
+QA output created by 156
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/156... 200
+> s3curl --id test1 -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/156/%e3%81%82%2etxt?uploads... 200
+> s3curl --id test1 -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/156/%e3%81%84%2etxt?uploads... 200
+> s3curl --id test1 -- -X POST _xq /InitiateMultipartUploadResult/UploadId http://SWIFT_HOST/156/object?uploads... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/156?uploads&encoding-type=url&max-uploads=hoge... 400
+HTTP/1.1 400 Bad Request
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>InvalidArgument</Code>
+  <Message>Provided max-uploads not an integer or within integer range</Message>
+  <RequestId>TXID</RequestId>
+  <ArgumentName>max-uploads</ArgumentName>
+  <ArgumentValue>hoge</ArgumentValue>
+</Error>

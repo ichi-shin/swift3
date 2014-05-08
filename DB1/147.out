@@ -1,0 +1,13 @@
+QA output created by 147
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/147... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/147/object?uploads... 200
+> s3curl --id test1 -- -X DELETE http://SWIFT_HOST/147/object?uploadId=UPLOAD_ID... 204
+> curl -X GET -D - http://SWIFT_HOST/v1/TENANT/147/object... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+X-Trans-Id: TXID
+
+<html><h1>Not Found</h1><p>The resource could not be found.</p></html>> curl -X GET http://SWIFT_HOST/v1/TENANT/147+segments... 204
+0

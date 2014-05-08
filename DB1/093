@@ -1,0 +1,13 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-5-2_6
+
+. ./common
+
+S3USER=test1
+_s3_put /hoge
+_s3_put /hoge?versioning -T ./093_dir/testVersioning-Enabled
+
+S3USER=test2
+_s3_get /hoge?versioning -D - | _filter_curl xml
+

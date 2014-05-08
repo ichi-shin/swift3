@@ -1,0 +1,10 @@
+QA output created by 048
+> s3curl --id test1 -- -I -X HEAD http://SWIFT_HOST/bucket... 404
+HTTP/1.1 404 Not Found
+Content-Length: LENGTH
+Content-Type: text/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+

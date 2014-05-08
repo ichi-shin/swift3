@@ -1,0 +1,21 @@
+QA output created by 092
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/hoge*... 201
+> curl -X PUT http://SWIFT_HOST/v1/TENANT/hoge*+versions... 201
+> curl -X PUT -T ./092_dir/testVersioning-Enabled http://SWIFT_HOST/v1/TENANT/hoge*... 202
+<html><h1>Accepted</h1><p>The request is accepted for processing.</p></html>> curl -X GET http://SWIFT_HOST/v1/TENANT/hoge*?versioning... 204
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/hoge*?versioning... 404
+HTTP/1.1 404 Not Found
+Content-Type: text/xml
+Date: DATE
+Transfer-Encoding: chunked
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NoSuchBucket</Code>
+  <Message>The specified bucket does not exist.</Message>
+  <RequestId>TXID</RequestId>
+  <BucketName>hoge*</BucketName>
+</Error>

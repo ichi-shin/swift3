@@ -1,0 +1,12 @@
+QA output created by 139
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/139... 200
+> s3curl --id test1 -- -X PUT -T ./data/segment_50M.dat_01 http://SWIFT_HOST/139/object... 200
+> s3curl --id test1 -- -X POST http://SWIFT_HOST/139/object2?uploads... 200
+> s3curl --id test1 -- -X PUT -H x-amz-copy-source: /139/object -H x-amz-copy-source-range: byte=0-1000000 -H x-amz-copy-source-if-match: ETAG http://SWIFT_HOST/139/object2?uploadId=UPLOAD_ID&partNumber=1... 200
+<?xml version="1.0" encoding="UTF-8"?>
+<CopyPartResult>
+  <LastModified>DATE</LastModified>
+  <ETag>ETAG</ETag>
+</CopyPartResult>
+> curl -X GET http://SWIFT_HOST/v1/TENANT/139+segments... 200
+object2/UPLOAD_ID/1

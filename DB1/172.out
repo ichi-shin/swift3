@@ -1,0 +1,25 @@
+QA output created by 172
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test2 -- -X PUT http://SWIFT_HOST/bucket2... 200
+> s3curl --id test1 -- -X GET -H hoge: hoge -D - http://SWIFT_HOST/... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: application/xml
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <Buckets>
+    <Bucket>
+      <Name>bucket</Name>
+      <CreationDate>DATE</CreationDate>
+    </Bucket>
+  </Buckets>
+</ListAllMyBucketsResult>

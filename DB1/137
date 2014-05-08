@@ -1,0 +1,21 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-8-2_5
+
+. ./common
+
+
+S3USER=test1
+
+
+_s3_put /137
+
+upload_id=$(_s3_post /137/object?uploads \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H "Content-Encoding: gzip" \
+    -H "x-amz-meta-hoge: hoge" \
+    -H "x-amz-storage-class: STANDARD" | \
+    _xq /InitiateMultipartUploadResult/UploadId)
+
+_s3_put /137/object?uploadId=hoge\&partNumber=1 -T ./data/segment_50M.dat_01 | _filter_curl xml
+

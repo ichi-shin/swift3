@@ -1,0 +1,27 @@
+#!/bin/bash
+# Copyright(c)2014 NTT corp. All Rights Reserved.
+# DB1-1-5
+
+. ./common
+
+S3USER=test1
+
+echo data > $tmp.data
+_s3_put /hoge
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /hoge/hoge2 -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H 'Expect: 100-continue' \
+    -H 'x-amz-storage-class: STANDARD' -D - | _filter_curl
+_s3_head /hoge/hoge2 | _filter_curl
+
+MD5=$(_md5 $tmp.data) CONTENT_TYPE='application/octet-stream' \
+    _s3_put /hoge/hoge3 -T $tmp.data \
+    -H 'Content-Disposition: attachment; filename="a.txt.gz"' \
+    -H 'Content-Encoding: gzip' \
+    -H "Content-Length: $(_file_size $tmp.data)" \
+    -H 'Expect: 100-continue' \
+    -H 'x-amz-storage-class: STANDARD' -D - | _filter_curl
+_s3_head /hoge/hoge3 | _filter_curl

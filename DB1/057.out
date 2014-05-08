@@ -1,0 +1,71 @@
+QA output created by 057
+> s3curl --id test1 -- -X PUT -H x-amz-acl:public-read http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+        <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER</ID>
+        <DisplayName>TEST1_USER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>
+> s3curl --id test1 -- -X PUT -H x-amz-grant-write: emailAddress='xyz@amazon.com' http://SWIFT_HOST/bucket?acl... 501
+<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+  <Code>NotImplemented</Code>
+  <Message>A header you provided implies functionality that is not implemented.</Message>
+  <RequestId>TXID</RequestId>
+</Error>
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket?acl... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Owner>
+    <ID>TEST1_USER</ID>
+    <DisplayName>TEST1_USER</DisplayName>
+  </Owner>
+  <AccessControlList>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+        <URI>http://acs.amazonaws.com/groups/global/AllUsers</URI>
+      </Grantee>
+      <Permission>READ</Permission>
+    </Grant>
+    <Grant>
+      <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+        <ID>TEST1_USER</ID>
+        <DisplayName>TEST1_USER</DisplayName>
+      </Grantee>
+      <Permission>FULL_CONTROL</Permission>
+    </Grant>
+  </AccessControlList>
+</AccessControlPolicy>

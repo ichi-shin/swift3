@@ -1,0 +1,36 @@
+QA output created by 078
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket... 200
+> s3curl --id test1 -- -X PUT http://SWIFT_HOST/bucket_log... 200
+> s3curl --id test1 -- -X PUT -H x-amz-grant-read-acp: uri="http://acs.amazonaws.com/groups/s3/LogDelivery" -H x-amz-grant-write: uri="http://acs.amazonaws.com/groups/s3/LogDelivery" http://SWIFT_HOST/bucket_log?acl... 200
+> s3curl --id test1 -- -X PUT -T /TMP.logging.xml http://SWIFT_HOST/bucket?logging... 200
+> s3curl --id test1 -- -X GET -D - http://SWIFT_HOST/bucket?logging... 200
+HTTP/1.1 200 OK
+Content-Length: LENGTH
+Content-Type: text/html; charset=UTF-8
+Date: DATE
+x-amz-id-2: TXID
+x-amz-request-id: TXID
+X-Trans-Id: TXID
+
+<?xml version="1.0" encoding="UTF-8"?>
+<BucketLoggingStatus xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <LoggingEnabled>
+    <TargetBucket>bucket_log</TargetBucket>
+    <TargetPrefix>logs_</TargetPrefix>
+    <TargetGrants>
+      <Grant>
+        <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group">
+          <URI>http://acs.amazonaws.com/groups/global/AuthenticatedUsers</URI>
+        </Grantee>
+        <Permission>READ</Permission>
+      </Grant>
+      <Grant>
+        <Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser">
+          <ID>TEST1_USER</ID>
+          <DisplayName>TEST1_USER</DisplayName>
+        </Grantee>
+        <Permission>READ</Permission>
+      </Grant>
+    </TargetGrants>
+  </LoggingEnabled>
+</BucketLoggingStatus>
