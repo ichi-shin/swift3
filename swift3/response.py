@@ -117,9 +117,10 @@ class Response(ResponseBase, swob.Response):
 
         self.headers = headers
 
-        from swift3.subresource import decode_acl
-        self.bucket_acl = decode_acl('container', swift3_headers)
-        self.object_acl = decode_acl('object', swift3_headers)
+        from swift3.subresource import decode_subresource
+        self.bucket_acl = decode_subresource('container', 'acl',
+                                             swift3_headers)
+        self.object_acl = decode_subresource('object', 'acl', swift3_headers)
 
     @classmethod
     def from_swift_resp(cls, sw_resp):

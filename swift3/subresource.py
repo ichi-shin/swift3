@@ -20,7 +20,7 @@ from simplejson import loads, dumps
 from memoize import mproperty
 
 from swift3.response import InvalidArgument, MalformedACLError, \
-    S3NotImplemented, InvalidRequest, AccessDenied, InternalError
+    S3NotImplemented, InvalidRequest, AccessDenied, InternalError, MalformedXML
 from swift3.etree import Element, SubElement, fromstring, tostring, \
     XMLSyntaxError, DocumentInvalid
 from swift3.utils import LOGGER, sysmeta_header, MAX_META_VALUE_LENGTH
@@ -32,7 +32,7 @@ XMLNS_XSI = 'http://www.w3.org/2001/XMLSchema-instance'
 UNDEFINED_OWNER_VALUE = 'undefined'
 
 
-def encode_acl(resource, value):
+def encode_subresource(resource, name, value):
     """
     Encode an ACL instance to Swift metadata.
 
@@ -47,15 +47,15 @@ def encode_acl(resource, value):
     headers = {}
     for i, value in enumerate(segs):
         if i == 0:
-            key = sysmeta_header(resource, 'acl')
+            key = sysmeta_header(resource, name)
         else:
-            key = sysmeta_header(resource, 'acl') + '-' + str(i)
+            key = sysmeta_header(resource, name) + '-' + str(i)
         headers[key] = value
 
     return headers
 
 
-def decode_acl(resource, headers):
+def decode_subresource(resource, name, headers):
     """
     Decode Swift metadata to an ACL instance.
 
@@ -66,23 +66,72 @@ def decode_acl(resource, headers):
 
     for i in count():
         if i == 0:
-            key = sysmeta_header(resource, 'acl')
+            key = sysmeta_header(resource, name)
         else:
-            key = sysmeta_header(resource, 'acl') + '-' + str(i)
+            key = sysmeta_header(resource, name) + '-' + str(i)
         if key not in headers or not headers[key]:
             break
         value += headers[key]
 
-    if value == '':
-        return ACL.from_grant([], UNDEFINED_OWNER_VALUE)
-
     try:
-        return ACL.decode(loads(value))
+        for cls in SubResource.__subclasses__():  # pylint: disable-msg=E1101
+            if cls.metadata_name == name:
+                if value == '':
+                    return cls.default()
+
+                return cls.decode(loads(value))
     except Exception as e:
         LOGGER.debug(e)
         pass
 
-    raise InvalidSubresource((resource, 'acl', value))
+    raise InvalidSubresource((resource, name, value))
+
+
+class SubResource(object):
+    """
+    Base class for S3 sub-resource
+    """
+    metadata_name = ''
+    root_tag = 'unused'
+    max_xml_length = 0
+
+    def __init__(self, xml):
+        try:
+            self.elem = fromstring(xml, self.root_tag)
+        except (XMLSyntaxError, DocumentInvalid):
+            raise MalformedXML()
+        except Exception as e:
+            LOGGER.error(e)
+            raise
+
+        self.validate()
+
+    def validate(self):
+        pass
+
+    @classmethod
+    def default(cls):
+        return None
+
+    @mproperty
+    def xml(self):
+        """
+        Returns an XML representation of this instance.
+        """
+        return tostring(self.elem)
+
+    def encode(self):
+        """
+        Represent this instance with JSON serializable types.
+        """
+        return self.xml
+
+    @classmethod
+    def decode(cls, value):
+        """
+        Given an encoded object and return a corresponding subresource.
+        """
+        return cls(value)
 
 
 class Grantee(object):
@@ -332,7 +381,7 @@ class Grant(object):
         return permission == self.permission and grantee in self.grantee
 
 
-class ACL(object):
+class ACL(SubResource):
     """
     S3 ACL class.
     """
@@ -342,19 +391,13 @@ class ACL(object):
 
     def __init__(self, xml):
         try:
-            self.elem = fromstring(xml, self.root_tag)
-        except (XMLSyntaxError, DocumentInvalid):
+            SubResource.__init__(self, xml)
+        except MalformedXML:
             raise MalformedACLError()
-        except Exception as e:
-            LOGGER.error(e)
-            raise
 
-    @mproperty
-    def xml(self):
-        """
-        Returns an XML representation of this instance.
-        """
-        return tostring(self.elem)
+    @classmethod
+    def default(cls):
+        return cls.from_grant([], UNDEFINED_OWNER_VALUE)
 
     def encode(self):
         """
@@ -503,3 +546,63 @@ ACLAuthenticatedRead = canned_acl['authenticated-read']
 ACLBucketOwnerRead = canned_acl['bucket-owner-read']
 ACLBucketOwnerFullControl = canned_acl['bucket-owner-full-control']
 ACLLogDeliveryWrite = canned_acl['log-delivery-write']
+
+
+class LoggingStatus(SubResource):
+    """
+    Logging configulation
+    """
+    metadata_name = 'logging'
+    root_tag = 'BucketLoggingStatus'
+    max_xml_length = 10 * 1024
+
+    def encode(self):
+        if self.enabled:
+            return [self.target_bucket, self.target_prefix] + \
+                [g.encode() for g in self.target_grant]
+        else:
+            return None
+
+    @classmethod
+    def decode(cls, value):
+        elem = Element(cls.root_tag)
+        if isinstance(value, list):
+            e = SubElement(elem, 'LoggingEnabled')
+            SubElement(e, 'TargetBucket').text = value[0]
+            SubElement(e, 'TargetPrefix').text = value[1]
+
+            if value[2:]:
+                SubElement(e, 'TargetGrants').extend(
+                    Grant.decode(g) for g in value[2:]
+                )
+
+        return cls(tostring(elem))
+
+    @mproperty
+    def enabled(self):
+        e = self.elem.find('./LoggingEnabled')
+        if e is None:
+            return False
+
+        return True
+
+    @mproperty
+    def target_bucket(self):
+        e = self.elem.find('./LoggingEnabled/TargetBucket')
+        if e is None:
+            return None
+
+        return e.text
+
+    @mproperty
+    def target_prefix(self):
+        e = self.elem.find('./LoggingEnabled/TargetPrefix')
+        if e is None:
+            return None
+
+        return e.text or ''
+
+    @mproperty
+    def target_grant(self):
+        return [Grant(e) for e in
+                self.elem.findall('./LoggingEnabled/TargetGrants/Grant')]

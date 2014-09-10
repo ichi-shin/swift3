@@ -19,13 +19,17 @@ import simplejson as json
 from swift.common import swob
 from swift.common.swob import Request
 
-from swift3.subresource import ACL, ACLPrivate, User, encode_acl, \
+from swift3.subresource import ACL, ACLPrivate, User, encode_subresource, \
     AuthenticatedUsers, AllUsers
 from swift3.test.unit.test_middleware import Swift3TestCase
 from swift3.utils import sysmeta_header
 from swift3.cfg import CONF
 
 XMLNS_XSI = 'http://www.w3.org/2001/XMLSchema-instance'
+
+
+def encode_acl(resource, value):
+    return encode_subresource(resource, 'acl', value)
 
 
 def _gen_test_acl(owner, permission=None, grantee=None):

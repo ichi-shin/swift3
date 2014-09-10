@@ -44,7 +44,7 @@ from swift3.response import AccessDenied, InvalidArgument, InvalidDigest, \
 from swift3.exception import NotS3Request, BadSwiftRequest
 from swift3.utils import utf8encode
 from swift3.cfg import CONF
-from swift3.subresource import decode_acl, encode_acl
+from swift3.subresource import decode_subresource, encode_subresource
 from swift3.utils import sysmeta_header
 
 # List of sub-resources that must be maintained as part of the HMAC
@@ -59,21 +59,21 @@ ALLOWED_SUB_RESOURCES = sorted([
 ])
 
 
-def _header_acl_property(resource):
+def _header_subresource_property(resource, name):
     """
     Set and retrieve the acl in self.headers
     """
     def getter(self):
-        return decode_acl(resource, self.headers)
+        return decode_subresource(resource, name, self.headers)
 
     def setter(self, value):
-        self.headers.update(encode_acl(resource, value))
+        self.headers.update(encode_subresource(resource, name, value))
 
     def deleter(self):
-        self.headers[sysmeta_header(resource, 'acl')] = ''
+        self.headers[sysmeta_header(resource, name)] = ''
 
     return property(getter, setter, deleter,
-                    doc='Get and set the %s acl property' % resource)
+                    doc='Get and set the %s %s property' % (resource, name))
 
 
 class Request(swob.Request):
@@ -81,8 +81,8 @@ class Request(swob.Request):
     S3 request object.
     """
 
-    bucket_acl = _header_acl_property('container')
-    object_acl = _header_acl_property('object')
+    bucket_acl = _header_subresource_property('container', 'acl')
+    object_acl = _header_subresource_property('object', 'acl')
 
     def __init__(self, env):
         swob.Request.__init__(self, env)
