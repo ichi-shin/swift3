@@ -14,8 +14,11 @@
 # limitations under the License.
 
 import re
+from datetime import datetime
+import time
+import calendar
 from functools import partial
-from itertools import count
+from itertools import combinations, count
 from simplejson import loads, dumps
 from memoize import mproperty
 
@@ -23,7 +26,8 @@ from swift3.response import InvalidArgument, MalformedACLError, \
     S3NotImplemented, InvalidRequest, AccessDenied, InternalError, MalformedXML
 from swift3.etree import Element, SubElement, fromstring, tostring, \
     XMLSyntaxError, DocumentInvalid
-from swift3.utils import LOGGER, sysmeta_header, MAX_META_VALUE_LENGTH
+from swift3.utils import LOGGER, unique_id, sysmeta_header, \
+    MAX_META_VALUE_LENGTH
 from swift3.cfg import CONF
 from swift3.exception import InvalidSubresource
 
@@ -606,3 +610,201 @@ class LoggingStatus(SubResource):
     def target_grant(self):
         return [Grant(e) for e in
                 self.elem.findall('./LoggingEnabled/TargetGrants/Grant')]
+
+
+class Expiration(object):
+    def __init__(self, elem):
+        self.elem = elem
+
+    def validate(self):
+        d = self.date
+        if d is None:
+            return
+
+        if d.hour or d.minute or d.second or d.microsecond:
+            raise InvalidArgument('Date', d,
+                                  'Date must be at midnight GMT')
+
+    def encode(self):
+        if self.days is not None:
+            return self.days
+        else:
+            return self.date.strftime('%Y-%m-%d')
+
+    @classmethod
+    def decode(cls, value):
+        if isinstance(value, int):
+            elem = Element('Days')
+            elem.text = str(value)
+        else:
+            elem = Element('Date')
+            elem.text = value + 'T00:00:00.000Z'
+
+        return elem
+
+    @mproperty
+    def days(self):
+        e = self.elem.find('./Days')
+        if e is None:
+            return None
+
+        return int(e.text)
+
+    @mproperty
+    def date(self):
+        e = self.elem.find('./Date')
+        if e is None:
+            return None
+
+        return self._iso8601_to_datetime(e.text)
+
+    def _iso8601_to_datetime(self, iso_date):
+        fmt = '%Y-%m-%dT%H:%M:%S'
+        if '.' in iso_date:
+            fmt += '.%f'
+        if iso_date[-1] == 'Z':
+            fmt += 'Z'
+
+        return datetime.strptime(iso_date, fmt)
+
+    def expire_time(self, creation_time):
+        if self.days is not None:
+            return float(creation_time) + self.days * 24 * 60 * 60
+        else:
+            return calendar.timegm(self.date.timetuple())
+
+
+class Rule(object):
+    def __init__(self, elem):
+        self.elem = elem
+
+    def validate(self):
+        if self.elem.find('./Transition') is not None:
+            raise S3NotImplemented("Transition is not supported")
+
+        if self.elem.find('./Expiration') is None:
+            err_msg = 'At least one action needs to be specified in a rule.'
+            raise InvalidArgument('Action', 'null', err_msg)
+
+        self.expiration.validate()
+
+    def encode(self):
+        return [self.id, self.prefix, 1 if self.enabled else 0, '',
+                self.expiration.encode()]
+
+    @classmethod
+    def decode(cls, value):
+        id, prefix, enabled, _, expiration = value
+        elem = Element('Rule')
+        SubElement(elem, 'ID').text = id
+        SubElement(elem, 'Prefix').text = prefix
+        SubElement(elem, 'Status').text = 'Enabled' if enabled else 'Disabled'
+        SubElement(elem, 'Expiration').append(Expiration.decode(expiration))
+
+        return elem
+
+    @mproperty
+    def id(self):
+        id_elem = self.elem.find('./ID')
+        if id_elem is None:
+            id_elem = Element('ID')
+            id_elem.text = unique_id()
+            self.elem[0].addprevious(id_elem)
+
+        return id_elem.text or ''
+
+    @mproperty
+    def prefix(self):
+        return self.elem.find('./Prefix').text or ''
+
+    @mproperty
+    def enabled(self):
+        status_elem = self.elem.find('./Status')
+        if status_elem.text == 'Enabled':
+            return True
+
+        return False
+
+    @mproperty
+    def expiration(self):
+        return Expiration(self.elem.find('./Expiration'))
+
+    def to_header(self, object_name, creation_time):
+        ts = self.expire_time(object_name, creation_time)
+        if ts is None:
+            return None
+        expiry_date = time.strftime(
+            "%a, %d %b %Y %H:%M:%S GMT", time.gmtime(ts))
+        return 'expiry-date="%s", rule-id="%s"' % (expiry_date, self.id)
+
+    def expire_time(self, object_name, creation_time):
+        if not object_name.startswith(self.prefix):
+            return None
+
+        return self.expiration.expire_time(creation_time)
+
+
+class Lifecycle(SubResource):
+    """
+    Lifecycle configulation
+    """
+    metadata_name = 'lifecycle'
+    root_tag = 'LifecycleConfiguration'
+    max_xml_length = 153934
+
+    def validate(self):
+        if len(self.rules) > CONF.max_lifecycle_rules:
+            raise MalformedXML()
+
+        for rule in self.rules:
+            rule.validate()
+
+        for a, b in combinations(self.rules, 2):
+            if a.id == b.id:
+                err_msg = 'RuleId must be unique. Found same ID for more' \
+                    ' than one rule.'
+                raise InvalidArgument('ID', a.id, err_msg)
+
+            if a.prefix.startswith(b.prefix) or b.prefix.startswith(a.prefix):
+                err_msg = 'Found overlapping prefixes %s, %s' % \
+                    (a.prefix, b.prefix)
+                raise InvalidRequest(err_msg)
+
+    def encode(self):
+        return [r.encode() for r in self.rules]
+
+    @classmethod
+    def decode(cls, value):
+        elem = Element(cls.root_tag)
+        for rule in value:
+            elem.append(Rule.decode(rule))
+
+        return cls(tostring(elem))
+
+    @mproperty
+    def rules(self):
+        _rules = []
+        for e in self.elem.iterchildren('Rule'):
+            _rules.append(Rule(e))
+
+        return _rules
+
+    def expire_time(self, obj_name, c_time):
+        for rule in self.rules:
+            utctime = rule.expire_time(obj_name, c_time)
+            if utctime is not None and rule.enabled:
+                return utctime
+        return None
+
+    def to_header(self, obj_name, c_time):
+        for rule in self.rules:
+            header = rule.to_header(obj_name, c_time)
+            if header is not None:
+                return header
+        return None
+
+    def check_expiration(self, obj_name, c_time):
+        expire = self.expire_time(obj_name, c_time)
+        if expire and expire <= time.time():
+                return True
+        return False
