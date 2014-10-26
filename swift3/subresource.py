@@ -331,6 +331,16 @@ class Grant(object):
     def __init__(self, elem):
         self.elem = elem
 
+    def validate(self):
+        e = self.elem.find('./Grantee')
+        type = e.get('{%s}type' % XMLNS_XSI)
+
+        if type == 'Group':
+            # Confirm that the specified URI is valid.
+            Group.from_uri(e.find('./URI').text)
+        elif type == 'AmazonCustomerByEmail':
+            raise S3NotImplemented()
+
     def encode(self):
         """
         Represent this instance with JSON serializable types.
@@ -399,6 +409,12 @@ class ACL(SubResource):
             SubResource.__init__(self, xml)
         except MalformedXML:
             raise MalformedACLError()
+
+    def validate(self):
+        if len(self.grant) > CONF.max_acl_grants:
+            raise MalformedACLError()
+        for g in self.grant:
+            g.validate()
 
     @classmethod
     def default(cls):

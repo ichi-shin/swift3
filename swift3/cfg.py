@@ -53,6 +53,7 @@ class Config(dict):
 CONF = Config({
     'allow_no_owner': False,
     'location': 'US',
+    'max_acl_grants': 100,
     'max_bucket_listing': 1000,
     'max_multi_delete_objects': 1000,
     's3_acl': False,
