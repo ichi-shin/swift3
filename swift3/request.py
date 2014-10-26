@@ -20,6 +20,7 @@ import base64
 import email.utils
 import datetime
 
+from swift.common.utils import split_path
 from swift.common import swob
 from swift.common.http import HTTP_OK, HTTP_CREATED, HTTP_ACCEPTED, \
     HTTP_NO_CONTENT, HTTP_UNAUTHORIZED, HTTP_FORBIDDEN, HTTP_NOT_FOUND, \
@@ -93,6 +94,8 @@ class Request(swob.Request):
         self.container_name, self.object_name = self._parse_uri()
         self._validate_headers()
         self.token = base64.urlsafe_b64encode(self._canonical_string())
+        self.tenant_name = None
+        self.keystone_token = None
         self.user_id = None
 
         # Avoids that swift.swob.Response replaces Location header value
@@ -232,6 +235,30 @@ class Request(swob.Request):
         if 'x-amz-website-redirect-location' in self.headers:
             raise S3NotImplemented('Website redirection is not supported.')
 
+    def authenticate(self, app):
+        sw_req = self.to_swift_req('TEST', None, None, body='')
+        # don't show log message of this request
+        sw_req.environ['swift.proxy_access_log_made'] = True
+
+        sw_resp = sw_req.get_response(app)
+
+        if not sw_req.remote_user:
+            raise SignatureDoesNotMatch()
+
+        _, self.tenant_name, _ = split_path(sw_resp.environ['PATH_INFO'],
+                                            2, 3, True)
+        self.tenant_name = utf8encode(self.tenant_name)
+
+        if 'HTTP_X_USER_NAME' in sw_resp.environ:
+            # keystone
+            self.user_id = "%s:%s" % (sw_resp.environ['HTTP_X_TENANT_NAME'],
+                                      sw_resp.environ['HTTP_X_USER_NAME'])
+            self.user_id = utf8encode(self.user_id)
+            self.keystone_token = sw_req.environ['HTTP_X_AUTH_TOKEN']
+        else:
+            # tempauth
+            self.user_id = self.access_key
+
     @property
     def body(self):
         """
@@ -367,6 +394,11 @@ class Request(swob.Request):
         """
         Create a Swift request based on this request's environment.
         """
+        if self.tenant_name is None:
+            tenant = self.access_key
+        else:
+            tenant = self.tenant_name
+
         env = self.environ.copy()
 
         for key in env:
@@ -381,14 +413,21 @@ class Request(swob.Request):
         env['swift.source'] = 'S3'
         if method is not None:
             env['REQUEST_METHOD'] = method
-        env['HTTP_X_AUTH_TOKEN'] = self.token
+
+        if self.keystone_token:
+            # Need to skip S3 authorization since authtoken middleware
+            # overwrites a tenant name in PATH_INFO
+            env['HTTP_X_AUTH_TOKEN'] = self.keystone_token
+            del env['HTTP_AUTHORIZATION']
+        else:
+            env['HTTP_X_AUTH_TOKEN'] = self.token
 
         if obj:
-            path = '/v1/%s/%s/%s' % (self.access_key, container, obj)
+            path = '/v1/%s/%s/%s' % (tenant, container, obj)
         elif container:
-            path = '/v1/%s/%s' % (self.access_key, container)
+            path = '/v1/%s/%s' % (tenant, container)
         else:
-            path = '/v1/%s' % (self.access_key)
+            path = '/v1/%s' % (tenant)
         env['PATH_INFO'] = path
 
         query_string = ''
@@ -536,18 +575,14 @@ class Request(swob.Request):
 
         sw_req = self.to_swift_req(method, container, obj, headers=headers,
                                    body=body, query=query)
+
+        sw_req.environ['swift_owner'] = True  # needed to set ACL
+        sw_req.environ['swift.authorize_override'] = True
+        sw_req.environ['swift.authorize'] = lambda req: None
+
         sw_resp = sw_req.get_response(app)
         resp = Response.from_swift_resp(sw_resp)
         status = resp.status_int  # pylint: disable-msg=E1101
-
-        if 'HTTP_X_USER_NAME' in sw_resp.environ:
-            # keystone
-            self.user_id = utf8encode("%s:%s" %
-                                      (sw_resp.environ['HTTP_X_TENANT_NAME'],
-                                       sw_resp.environ['HTTP_X_USER_NAME']))
-        else:
-            # tempauth
-            self.user_id = self.access_key
 
         success_codes = self._swift_success_codes(method, container, obj)
         error_codes = self._swift_error_codes(method, container, obj)

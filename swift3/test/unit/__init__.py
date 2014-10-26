@@ -60,6 +60,12 @@ class Swift3TestCase(unittest.TestCase):
         self.swift = self.app.swift
         self.swift3 = Swift3Middleware(self.app)
 
+        # TEST method is used to resolve a tenant name
+        self.swift.register('TEST', '/v1/AUTH_test', swob.HTTPMethodNotAllowed,
+                            {}, None)
+        self.swift.register('TEST', '/v1/AUTH_X', swob.HTTPMethodNotAllowed,
+                            {}, None)
+
         self.swift.register('HEAD', '/v1/AUTH_test/bucket',
                             swob.HTTPNoContent, {}, None)
         self.swift.register('PUT', '/v1/AUTH_test/bucket',
