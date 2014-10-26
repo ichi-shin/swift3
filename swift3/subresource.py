@@ -23,7 +23,8 @@ from simplejson import loads, dumps
 from memoize import mproperty
 
 from swift3.response import InvalidArgument, MalformedACLError, \
-    S3NotImplemented, InvalidRequest, AccessDenied, InternalError, MalformedXML
+    S3NotImplemented, InvalidRequest, AccessDenied, InternalError, \
+    MalformedXML, IllegalVersioningConfigurationException
 from swift3.etree import Element, SubElement, fromstring, tostring, \
     XMLSyntaxError, DocumentInvalid
 from swift3.utils import LOGGER, unique_id, sysmeta_header, \
@@ -808,3 +809,35 @@ class Lifecycle(SubResource):
         if expire and expire <= time.time():
                 return True
         return False
+
+
+class Versioning(SubResource):
+    """
+    Versioning configuration.
+    """
+    metadata_name = 'versioning'
+    root_tag = 'VersioningConfiguration'
+    max_xml_length = 1024
+
+    def validate(self):
+        if self.status is None:
+            msg = 'The Versioning element must be specified'
+            raise IllegalVersioningConfigurationException(msg)
+
+    def encode(self):
+        return self.status
+
+    @classmethod
+    def decode(cls, value):
+        elem = Element(cls.root_tag)
+        SubElement(elem, 'Status').text = value
+
+        return cls(tostring(elem))
+
+    @mproperty
+    def status(self):
+        e = self.elem.find('./Status')
+        if e is None:
+            return None
+
+        return e.text
