@@ -34,7 +34,7 @@ from swift3.controllers import ServiceController, BucketController, \
     ObjectController, AclController, MultiObjectDeleteController, \
     LocationController, LoggingStatusController, PartController, \
     UploadController, UploadsController, VersioningController, \
-    UnsupportedController, S3AclController
+    UnsupportedController, S3AclController, LifecycleController
 from swift3.response import AccessDenied, InvalidArgument, InvalidDigest, \
     RequestTimeTooSkewed, Response, SignatureDoesNotMatch, \
     ServiceUnavailable, BucketAlreadyExists, BucketNotEmpty, EntityTooLarge, \
@@ -83,6 +83,7 @@ class Request(swob.Request):
 
     bucket_acl = _header_subresource_property('container', 'acl')
     object_acl = _header_subresource_property('object', 'acl')
+    lifecycle = _header_subresource_property('container', 'lifecycle')
 
     def __init__(self, env):
         swob.Request.__init__(self, env)
@@ -325,6 +326,8 @@ class Request(swob.Request):
                 return AclController
         if 'delete' in self.params:
             return MultiObjectDeleteController
+        if 'lifecycle' in self.params:
+            return LifecycleController
         if 'location' in self.params:
             return LocationController
         if 'logging' in self.params:
