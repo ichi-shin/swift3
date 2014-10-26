@@ -47,8 +47,8 @@ import os
 
 from swift.common.utils import split_path
 
-from swift3.controllers.base import Controller, bucket_operation, \
-    object_operation
+from swift3.controllers.base import Controller, bucket_owner_required, \
+    bucket_operation, object_operation
 from swift3.response import InvalidArgument, ErrorResponse, MalformedXML, \
     InvalidPart, BucketAlreadyExists, EntityTooSmall, InvalidPartOrder, \
     InvalidRequest, HTTPOk, HTTPNoContent, NoSuchKey, NoSuchUpload
@@ -127,6 +127,7 @@ class UploadsController(Controller):
     @bucket_operation(err_resp=InvalidRequest,
                       err_msg="Key is not expected for the GET method "
                               "?uploads subresource")
+    @bucket_owner_required
     def GET(self, req):
         """
         Handles List Multipart Uploads

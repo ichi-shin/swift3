@@ -17,7 +17,7 @@ from simplejson import loads
 
 from swift.common.http import HTTP_OK
 
-from swift3.controllers.base import Controller
+from swift3.controllers.base import Controller, bucket_owner_required
 from swift3.controllers.acl import handle_acl_header
 from swift3.subresource import ACL, ACLPrivate
 from swift3.etree import Element, SubElement, tostring, fromstring, \
@@ -160,6 +160,7 @@ class BucketController(Controller):
 
         return resp
 
+    @bucket_owner_required
     def DELETE(self, req):
         """
         Handle DELETE Bucket request

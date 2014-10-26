@@ -15,8 +15,24 @@
 
 import functools
 
-from swift3.response import S3NotImplemented, InvalidRequest
+from swift3.response import S3NotImplemented, InvalidRequest, AccessDenied
 from swift3.utils import LOGGER, camel_to_snake
+from swift3.cfg import CONF
+
+
+def bucket_owner_required(func):
+    """
+    """
+    @functools.wraps(func)
+    def wrapped(self, req):
+        if CONF.s3_acl:
+            resp = req.get_response(self.app, 'HEAD', obj='')
+            if resp.bucket_acl.owner != req.user_id:
+                raise AccessDenied()
+
+        return func(self, req)
+
+    return wrapped
 
 
 def bucket_operation(func=None, err_resp=None, err_msg=None):

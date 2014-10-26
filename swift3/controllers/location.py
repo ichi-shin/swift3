@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from swift3.controllers.base import Controller, bucket_operation
+from swift3.controllers.base import Controller, bucket_owner_required, \
+    bucket_operation
 from swift3.etree import Element, tostring
 from swift3.response import HTTPOk
 from swift3.cfg import CONF
@@ -25,6 +26,7 @@ class LocationController(Controller):
     S3 server log.
     """
     @bucket_operation
+    @bucket_owner_required
     def GET(self, req):
         """
         Handles GET Bucket location.
