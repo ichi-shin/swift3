@@ -393,6 +393,12 @@ class Grant(object):
         yield self.grantee
 
     def allow(self, grantee, permission):
+        if not CONF.allow_public_write:
+            if self.permission == 'WRITE' and \
+                    isinstance(self.grantee, AllUsers):
+                # public write is not allowed
+                return False
+
         return permission == self.permission and grantee in self.grantee
 
 
@@ -514,6 +520,11 @@ class ACL(SubResource):
                     err_msg = 'Specifying both Canned ACLs and Header ' \
                         'Grants is not allowed'
                     raise InvalidRequest(err_msg)
+
+                if not CONF.allow_public_write and \
+                        headers['x-amz-acl'] == 'public-read-write':
+                    raise InvalidArgument('x-amz-acl', acl,
+                                          'Public write is not allowed.')
 
                 grant = canned_acl_grant(bucket_owner, object_owner)[acl]
         except (KeyError, ValueError):

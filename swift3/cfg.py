@@ -52,6 +52,7 @@ class Config(dict):
 # Global config dictionary.  The default values can be defined here.
 CONF = Config({
     'allow_no_owner': False,
+    'allow_public_write': True,
     'location': 'US',
     'max_acl_grants': 100,
     'max_bucket_listing': 1000,

@@ -35,6 +35,8 @@ use = egg:swift3#swift3
 # Swift cluster has the resources created via the Swift API.
 # allow_no_owner = false
 #
+# allow_public_write = true
+#
 # max_acl_grants = 100
 #
 # Set a region name of your Swift cluster.  Note that Swift3 doesn't choose a
