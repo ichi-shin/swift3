@@ -53,6 +53,7 @@ class Config(dict):
 CONF = Config({
     'allow_no_owner': False,
     'allow_public_write': True,
+    'log_delivery_user': '.log_delivery',
     'location': 'US',
     'max_acl_grants': 100,
     'max_bucket_listing': 1000,

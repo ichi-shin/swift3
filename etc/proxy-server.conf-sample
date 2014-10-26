@@ -37,6 +37,8 @@ use = egg:swift3#swift3
 #
 # allow_public_write = true
 #
+# log_delivery_user = .log_delivery
+#
 # max_acl_grants = 100
 #
 # Set a region name of your Swift cluster.  Note that Swift3 doesn't choose a

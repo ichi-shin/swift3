@@ -323,8 +323,14 @@ class LogDelivery(Group):
     WRITE and READ_ACP permissions on a bucket enables this group to write
     server access logs to the bucket.
     """
-    # TODO: Add support for log delivery group.
-    pass
+    uri = 'http://acs.amazonaws.com/groups/s3/LogDelivery'
+
+    def __contains__(self, key):
+        if ':' in key:
+            tenant, user = key.split(':', 1)
+        else:
+            user = key
+        return user == CONF.log_delivery_user
 
 
 class Grant(object):
