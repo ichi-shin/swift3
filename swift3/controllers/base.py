@@ -27,7 +27,7 @@ def bucket_owner_required(func):
     def wrapped(self, req):
         if CONF.s3_acl:
             resp = req.get_response(self.app, 'HEAD', obj='')
-            if resp.bucket_acl.owner != req.user_id:
+            if resp.bucket_info['acl'].owner != req.user_id:
                 raise AccessDenied()
 
         return func(self, req)

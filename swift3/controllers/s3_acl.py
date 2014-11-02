@@ -58,9 +58,9 @@ class AclController(Controller):
         """
         resp = req.get_response(self.app, 'HEAD')
         if req.is_object_request:
-            acl = resp.object_acl
+            acl = resp.object_info['acl']
         else:
-            acl = resp.bucket_acl
+            acl = resp.bucket_info['acl']
 
         acl.check_permission(req.user_id, 'READ_ACP')
 
@@ -78,13 +78,15 @@ class AclController(Controller):
             o_resp = req.get_response(self.app, 'HEAD')
 
             acl = get_acl(req.headers, req.xml(ACL.max_xml_length),
-                          b_resp.bucket_acl.owner, o_resp.object_acl.owner)
+                          b_resp.bucket_info['acl'].owner,
+                          o_resp.object_info['acl'].owner)
 
-            if acl.owner != o_resp.object_acl.owner:
+            if acl.owner != o_resp.object_info['acl'].owner:
                 # It is not allowed to change an owner.
                 raise AccessDenied()
 
-            o_resp.object_acl.check_permission(req.user_id, 'WRITE_ACP')
+            o_resp.object_info['acl'].check_permission(req.user_id,
+                                                       'WRITE_ACP')
 
             for permission, grantee in acl.grant:
                 LOGGER.info('Grant %s %s permission on the object /%s/%s' %
@@ -104,13 +106,13 @@ class AclController(Controller):
             resp = req.get_response(self.app, 'HEAD')
 
             acl = get_acl(req.headers, req.xml(ACL.max_xml_length),
-                          resp.bucket_acl.owner)
+                          resp.bucket_info['acl'].owner)
 
-            if acl.owner != resp.bucket_acl.owner:
+            if acl.owner != resp.bucket_info['acl'].owner:
                 # It is not allowed to change an owner.
                 raise AccessDenied()
 
-            resp.bucket_acl.check_permission(req.user_id, 'WRITE_ACP')
+            resp.bucket_info['acl'].check_permission(req.user_id, 'WRITE_ACP')
 
             for permission, grantee in acl.grant:
                 LOGGER.info('Grant %s %s permission on the bucket /%s' %

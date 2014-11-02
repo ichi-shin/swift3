@@ -39,7 +39,7 @@ class BucketController(Controller):
         Handle HEAD Bucket (Get Metadata) request
         """
         resp = req.get_response(self.app)
-        resp.bucket_acl.check_permission(req.user_id, 'READ')
+        resp.bucket_info['acl'].check_permission(req.user_id, 'READ')
 
         return HTTPOk(headers=resp.headers)
 
@@ -71,7 +71,7 @@ class BucketController(Controller):
             query.update({'delimiter': req.params['delimiter']})
 
         resp = req.get_response(self.app, query=query)
-        resp.bucket_acl.check_permission(req.user_id, 'READ')
+        resp.bucket_info['acl'].check_permission(req.user_id, 'READ')
 
         objects = loads(resp.body)
 
@@ -147,7 +147,7 @@ class BucketController(Controller):
             req.get_response(self.app)
 
             # update metadata
-            req.bucket_acl = acl
+            req.bucket_info['acl'] = acl
             req.get_response(self.app, 'POST')
         else:
             if 'HTTP_X_AMZ_ACL' in req.environ:
@@ -166,7 +166,7 @@ class BucketController(Controller):
         Handle DELETE Bucket request
         """
         resp = req.get_response(self.app, 'HEAD')
-        resp.bucket_acl.check_owner(req.user_id)
+        resp.bucket_info['acl'].check_owner(req.user_id)
 
         return req.get_response(self.app)
 
