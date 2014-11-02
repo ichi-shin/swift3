@@ -17,7 +17,9 @@ import re
 import uuid
 import base64
 from simplejson import loads
+from datetime import datetime
 
+from swift.common.swob import UTC
 from swift.common.utils import get_logger
 
 from swift3.cfg import CONF
@@ -83,3 +85,17 @@ def utf8decode(s):
     if isinstance(s, str):
         s = s.decode('utf8')
     return s
+
+
+def format_timestamp(ts):
+    s = datetime.fromtimestamp(float(ts), UTC).isoformat()
+
+    # Remove timezone info
+    if re.search('\+[0-9][0-9]:[0-9][0-9]$', s):
+        s = s[:-6]
+
+    if re.search('\.[0-9]{6}$', s):
+        return s[:-7] + '.000Z'
+    else:
+        # microsecond is 0
+        return s + '.000Z'

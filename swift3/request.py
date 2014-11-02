@@ -62,6 +62,20 @@ ALLOWED_SUB_RESOURCES = sorted([
 ])
 
 
+def _header_property(resource, name):
+    def getter(self):
+        return self.headers.get(sysmeta_header(resource, name))
+
+    def setter(self, value):
+        self.headers[sysmeta_header(resource, name)] = value
+
+    def deleter(self):
+        self.headers[sysmeta_header(resource, name)] = ''
+
+    return property(getter, setter, deleter,
+                    doc='Get and set the %s %s property' % (resource, name))
+
+
 def _header_subresource_property(resource, name):
     """
     Set and retrieve the acl in self.headers
@@ -83,10 +97,13 @@ class Request(swob.Request):
     """
     S3 request object.
     """
+    version_id = _header_property('object', 'version-id')
+    delete_marker = _header_property('object', 'delete-marker')
 
     bucket_acl = _header_subresource_property('container', 'acl')
     object_acl = _header_subresource_property('object', 'acl')
     lifecycle = _header_subresource_property('container', 'lifecycle')
+    versioning = _header_subresource_property('container', 'versioning')
 
     def __init__(self, env):
         swob.Request.__init__(self, env)

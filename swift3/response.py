@@ -119,11 +119,18 @@ class Response(ResponseBase, swob.Response):
 
         from swift3.subresource import decode_subresource
         self.bucket_info = {
+            'ts': sw_headers['x-timestamp'],
+            'versioning': decode_subresource('container', 'versioning',
+                                             swift3_headers),
             'lifecycle': decode_subresource('container', 'lifecycle',
                                             swift3_headers),
             'acl': decode_subresource('container', 'acl', swift3_headers),
         }
         self.object_info = {
+            'ts': sw_headers['x-timestamp'],
+            'version_id': swift3_headers['x-object-meta-[swift3]-version-id'],
+            'delete_marker': swift3_headers[
+                'x-object-meta-[swift3]-delete-marker'],
             'acl': decode_subresource('object', 'acl', swift3_headers),
             'meta': meta,
         }

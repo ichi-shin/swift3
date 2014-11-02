@@ -26,7 +26,8 @@ from swift3.controllers.multi_upload import UploadController, \
 from swift3.controllers.lifecycle import LifecycleController
 from swift3.controllers.location import LocationController
 from swift3.controllers.logging import LoggingStatusController
-from swift3.controllers.versioning import VersioningController
+from swift3.controllers.versioning import VersioningController, \
+    BucketversionsController
 
 __all__ = [
     'Controller',
@@ -44,6 +45,7 @@ __all__ = [
     'LocationController',
     'LoggingStatusController',
     'VersioningController',
+    'BucketversionsController',
 
     'UnsupportedController',
 ]

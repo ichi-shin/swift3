@@ -15,8 +15,9 @@
 
 import functools
 
-from swift3.response import S3NotImplemented, InvalidRequest, AccessDenied
-from swift3.utils import LOGGER, camel_to_snake
+from swift3.response import S3NotImplemented, InvalidRequest, AccessDenied, \
+    NoSuchBucket, NoSuchVersion
+from swift3.utils import LOGGER, camel_to_snake, unique_id, json_to_objects
 from swift3.cfg import CONF
 
 
@@ -91,6 +92,104 @@ class Controller(object):
         """
         name = cls.__name__[:-len('Controller')]
         return camel_to_snake(name).upper()
+
+    def versions_iter(self, req, obj=None, prefix=None, key_marker=None,
+                      version_id_marker=None):
+        # if object name is not specified, iterates all the version objects
+        if obj is None:
+            query = {'format': 'json'}
+            if prefix:
+                query['prefix'] = prefix
+            if key_marker:
+                if version_id_marker:
+                    # some of key_marker objects may be valid
+                    query['marker'] = key_marker[:-1]
+                else:
+                    query['marker'] = key_marker
+
+            resp = req.get_response(self.app, 'GET', obj='', query=query)
+            objects = json_to_objects(resp.body)
+            for o in objects:
+                for info in self.versions_iter(req, o['name'], prefix,
+                                               key_marker, version_id_marker):
+                    yield info
+            return
+
+        if key_marker is None:
+            after_marker = True
+        else:
+            if obj < key_marker or obj == key_marker and version_id_marker:
+                # no items we should yield for this object
+                return
+
+            after_marker = (obj > key_marker)
+
+        # get the latest object first
+        info = req.get_object_info(self.app, obj=obj)
+        info = info.copy()
+        info['raw_container'] = req.container_name
+        info['raw_object'] = obj
+        info['object'] = obj
+        if not info['version_id']:
+            info['version_id'] = 'null'
+
+        if after_marker:
+            yield info
+        elif info['version_id'] == version_id_marker:
+            after_marker = True
+
+        # iterate the versions container
+        version_container = req.container_name + '+versions'
+        query = {'format': 'json'}
+        prefix_len = '%03x' % len(obj)
+        query['prefix'] = prefix_len + obj + '/'
+
+        try:
+            resp = req.get_response(self.app, 'GET', version_container, '',
+                                    query=query)
+            for o in json_to_objects(resp.body)[::-1]:
+                name, ts = o['name'][3:].rsplit('/', 1)
+
+                info = req.get_object_info(self.app, version_container,
+                                           o['name'])
+                info = info.copy()
+                info['raw_container'] = version_container
+                info['raw_object'] = o['name']
+                info['object'] = name
+                info['ts'] = ts  # TODO: add explanation
+                if not info['version_id']:
+                    info['version_id'] = 'null'
+
+                if after_marker:
+                    yield info
+                elif info['version_id'] == version_id_marker:
+                    after_marker = True
+        except NoSuchBucket:
+            # probably, versioning is not enabled on this bucket
+            pass
+
+    def find_version_object(self, req, version_id):
+        for info in self.versions_iter(req, req.object_name):
+            if info['version_id'] == version_id:
+                return info['raw_container'], info['raw_object']
+
+        raise NoSuchVersion(req.object_name, version_id)
+
+    def add_version_id(self, req):
+        bucket_info = req.get_bucket_info(self.app)
+        versioning = bucket_info['versioning']
+
+        if versioning is None:
+            pass
+        elif versioning.status == 'Enabled':
+            req.version_id = unique_id()
+        elif versioning.status == 'Suspended':
+            container, obj = self.find_version_object(req, 'null')
+            if container == req.container_name:  # the latest object
+                req.environ['swift_versioned_copy'] = True
+            else:
+                # remove previous object with null version id
+                req.get_response(self.app, 'DELETE', container, obj)
 
 
 class UnsupportedController(Controller):
