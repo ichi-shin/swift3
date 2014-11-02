@@ -42,7 +42,7 @@ upload information:
    Static Large Object.
 """
 
-from simplejson import loads, dumps
+from simplejson import dumps
 import os
 
 from swift.common.utils import split_path
@@ -53,7 +53,7 @@ from swift3.response import InvalidArgument, ErrorResponse, MalformedXML, \
     InvalidPart, BucketAlreadyExists, EntityTooSmall, InvalidPartOrder, \
     InvalidRequest, HTTPOk, HTTPNoContent, NoSuchKey, NoSuchUpload
 from swift3.exception import BadSwiftRequest
-from swift3.utils import LOGGER, unique_id
+from swift3.utils import LOGGER, unique_id, json_to_objects
 from swift3.etree import Element, SubElement, fromstring, tostring, \
     XMLSyntaxError, DocumentInvalid
 
@@ -144,7 +144,7 @@ class UploadsController(Controller):
         }
         container = req.container_name + '+segments'
         resp = req.get_response(self.app, container=container, query=query)
-        objects = loads(resp.body)
+        objects = json_to_objects(resp.body)
 
         uploads = []
         for o in objects:
@@ -262,7 +262,7 @@ class UploadController(Controller):
         container = req.container_name + '+segments'
         resp = req.get_response(self.app, container=container, obj='',
                                 query=query)
-        objects = loads(resp.body)
+        objects = json_to_objects(resp.body)
 
         last_part = 0
 
@@ -332,7 +332,7 @@ class UploadController(Controller):
         resp = req.get_response(self.app, 'GET', container, '', query=query)
 
         #  Iterate over the segment objects and delete them individually
-        objects = loads(resp.body)
+        objects = json_to_objects(resp.body)
         for o in objects:
             container = req.container_name + '+segments'
             req.get_response(self.app, container=container, obj=o['name'])
@@ -356,7 +356,7 @@ class UploadController(Controller):
 
         container = req.container_name + '+segments'
         resp = req.get_response(self.app, 'GET', container, '', query=query)
-        objinfo = loads(resp.body)
+        objinfo = json_to_objects(resp.body)
         objtable = dict((o['name'],
                          {'path': '/'.join(['', container, o['name']]),
                           'etag': o['hash'],

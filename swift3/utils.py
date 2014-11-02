@@ -16,7 +16,7 @@
 import re
 import uuid
 import base64
-
+from simplejson import loads
 
 from swift.common.utils import get_logger
 
@@ -48,6 +48,17 @@ def sysmeta_header(resource, name):
     Returns the system metadata header for given resource type and name.
     """
     return sysmeta_prefix(resource) + name
+
+
+def json_to_objects(json):
+    objects = loads(json)
+    for o in objects:
+        if 'subdir' in o:
+            o['subdir'] = utf8encode(o['subdir'])
+        if 'name' in o:
+            o['name'] = utf8encode(o['name'])
+
+    return objects
 
 
 def camel_to_snake(camel):

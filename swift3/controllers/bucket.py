@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from simplejson import loads
-
 from swift.common.http import HTTP_OK
 
 from swift3.controllers.base import Controller, bucket_owner_required
@@ -25,7 +23,7 @@ from swift3.etree import Element, SubElement, tostring, fromstring, \
 from swift3.response import HTTPOk, S3NotImplemented, InvalidArgument, \
     MalformedXML, InvalidLocationConstraint
 from swift3.cfg import CONF
-from swift3.utils import LOGGER
+from swift3.utils import LOGGER, json_to_objects
 
 MAX_PUT_BUCKET_BODY_SIZE = 10240
 
@@ -73,7 +71,7 @@ class BucketController(Controller):
         resp = req.get_response(self.app, query=query)
         resp.bucket_info['acl'].check_permission(req.user_id, 'READ')
 
-        objects = loads(resp.body)
+        objects = json_to_objects(resp.body)
 
         elem = Element('ListBucketResult')
         SubElement(elem, 'Name').text = req.container_name
