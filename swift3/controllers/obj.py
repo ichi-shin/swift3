@@ -56,8 +56,8 @@ class ObjectController(Controller):
         """
         Handle PUT Object and PUT Object (Copy) request
         """
-        b_resp = req.get_response(self.app, 'HEAD', obj='')
-        b_resp.bucket_info['acl'].check_permission(req.user_id, 'WRITE')
+        bucket_info = req.get_bucket_info(self.app)
+        bucket_info['acl'].check_permission(req.user_id, 'WRITE')
 
         resp = req.get_response(self.app)
 
@@ -78,7 +78,7 @@ class ObjectController(Controller):
         """
         Handle DELETE Object request
         """
-        b_resp = req.get_response(self.app, 'HEAD', obj='')
-        b_resp.bucket_info['acl'].check_permission(req.user_id, 'WRITE')
+        bucket_info = req.get_bucket_info(self.app)
+        bucket_info['acl'].check_permission(req.user_id, 'WRITE')
 
         return req.get_response(self.app)

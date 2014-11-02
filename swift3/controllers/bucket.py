@@ -165,9 +165,6 @@ class BucketController(Controller):
         """
         Handle DELETE Bucket request
         """
-        resp = req.get_response(self.app, 'HEAD')
-        resp.bucket_info['acl'].check_owner(req.user_id)
-
         return req.get_response(self.app)
 
     def POST(self, req):

@@ -56,12 +56,12 @@ class AclController(Controller):
         """
         Handles GET Bucket acl and GET Object acl.
         """
-        resp = req.get_response(self.app, 'HEAD')
         if req.is_object_request:
-            acl = resp.object_info['acl']
+            info = req.get_object_info(self.app)
         else:
-            acl = resp.bucket_info['acl']
+            info = req.get_bucket_info(self.app)
 
+        acl = info['acl']
         acl.check_permission(req.user_id, 'READ_ACP')
 
         resp = HTTPOk()
@@ -74,19 +74,17 @@ class AclController(Controller):
         Handles PUT Bucket acl and PUT Object acl.
         """
         if req.is_object_request:
-            b_resp = req.get_response(self.app, 'HEAD', obj='')
-            o_resp = req.get_response(self.app, 'HEAD')
+            bucket_info = req.get_bucket_info(self.app)
+            object_info = req.get_object_info(self.app)
 
             acl = get_acl(req.headers, req.xml(ACL.max_xml_length),
-                          b_resp.bucket_info['acl'].owner,
-                          o_resp.object_info['acl'].owner)
+                          bucket_info['acl'].owner, object_info['acl'].owner)
 
-            if acl.owner != o_resp.object_info['acl'].owner:
+            if acl.owner != object_info['acl'].owner:
                 # It is not allowed to change an owner.
                 raise AccessDenied()
 
-            o_resp.object_info['acl'].check_permission(req.user_id,
-                                                       'WRITE_ACP')
+            object_info['acl'].check_permission(req.user_id, 'WRITE_ACP')
 
             for permission, grantee in acl.grant:
                 LOGGER.info('Grant %s %s permission on the object /%s/%s' %
@@ -98,21 +96,21 @@ class AclController(Controller):
             # Send the original metadata since a POST Object request will
             # remove all the existing metadata.
             headers = {}
-            for key, val in o_resp.meta.iteritems():
+            for key, val in object_info['meta'].iteritems():
                 headers['x-object-meta-' + key] = val
 
             req.get_response(self.app, 'POST', headers=headers)
         else:
-            resp = req.get_response(self.app, 'HEAD')
+            bucket_info = req.get_bucket_info(self.app)
 
             acl = get_acl(req.headers, req.xml(ACL.max_xml_length),
-                          resp.bucket_info['acl'].owner)
+                          bucket_info['acl'].owner)
 
-            if acl.owner != resp.bucket_info['acl'].owner:
+            if acl.owner != bucket_info['acl'].owner:
                 # It is not allowed to change an owner.
                 raise AccessDenied()
 
-            resp.bucket_info['acl'].check_permission(req.user_id, 'WRITE_ACP')
+            bucket_info['acl'].check_permission(req.user_id, 'WRITE_ACP')
 
             for permission, grantee in acl.grant:
                 LOGGER.info('Grant %s %s permission on the bucket /%s' %

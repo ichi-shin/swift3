@@ -34,7 +34,7 @@ class LoggingStatusController(Controller):
         """
         Handles GET Bucket logging.
         """
-        req.get_response(self.app, method='HEAD')
+        req.get_bucket_info(self.app)
 
         # logging disabled
         elem = Element('BucketLoggingStatus')

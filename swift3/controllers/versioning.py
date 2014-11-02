@@ -34,7 +34,7 @@ class VersioningController(Controller):
         """
         Handles GET Bucket versioning.
         """
-        req.get_response(self.app, method='HEAD')
+        req.get_bucket_info(self.app)
 
         # Just report there is no versioning configured here.
         elem = Element('VersioningConfiguration')

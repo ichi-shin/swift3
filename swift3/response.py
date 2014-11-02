@@ -87,7 +87,7 @@ class Response(ResponseBase, swob.Response):
         swift3_headers = HeaderKeyDict()
         sw_headers = HeaderKeyDict()
         headers = HeaderKeyDict()
-        self.meta = {}
+        meta = {}
 
         for key, val in self.headers.iteritems():
             _key = key.lower()
@@ -102,7 +102,7 @@ class Response(ResponseBase, swob.Response):
             _key = key.lower()
 
             if _key.startswith('x-object-meta-'):
-                self.meta[_key[14:]] = val
+                meta[_key[14:]] = val
                 headers['x-amz-meta-' + _key[14:]] = val
             elif _key in ('content-length', 'content-type',
                           'content-range', 'content-encoding',
@@ -125,6 +125,7 @@ class Response(ResponseBase, swob.Response):
         }
         self.object_info = {
             'acl': decode_subresource('object', 'acl', swift3_headers),
+            'meta': meta,
         }
 
     @classmethod

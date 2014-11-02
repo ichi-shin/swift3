@@ -31,7 +31,7 @@ class LocationController(Controller):
         """
         Handles GET Bucket location.
         """
-        req.get_response(self.app, method='HEAD')
+        req.get_bucket_info(self.app)
 
         elem = Element('LocationConstraint')
         if CONF.location != 'US':
